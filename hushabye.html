@@ -528,19 +528,9 @@ const TRACK_FILES_FALLBACK = [
 let TRACK_FILES = [];
 
 async function loadTracks() {
-  if (window.location.protocol === 'file:') {
-    TRACK_FILES = [...TRACK_FILES_FALLBACK];
-  } else {
-    try {
-      const res = await fetch('mp3/');
-      const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const links = doc.querySelectorAll('a[href$=".mp3"]');
-      TRACK_FILES = Array.from(links).map(a => decodeURIComponent(a.getAttribute('href'))).filter(Boolean).sort();
-    } catch(e) {}
-    if (TRACK_FILES.length === 0) TRACK_FILES = [...TRACK_FILES_FALLBACK];
-  }
+  // Always use fallback filenames — these match the actual mp3/ folder contents
+  TRACK_FILES = [...TRACK_FILES_FALLBACK];
+  {
 
   const container = document.getElementById('tracks-container');
 
@@ -551,8 +541,21 @@ async function loadTracks() {
 
   container.innerHTML = '';
   TRACK_FILES.forEach((file, i) => {
-    const name = file.replace(/^\d+[\s_-]*/, '').replace(/_/g, ' ').replace(/\.mp3$/i, '')
-      .replace(/\b\w/g, c => c.toUpperCase());
+    // Clean filename into display name
+    let name = file.replace(/\.mp3$/i, '');           // strip extension
+    name = name.replace(/^\d+\s*/, '');               // strip leading number
+    // "Series Name, Track Name | Source" → extract Track Name
+    if (name.includes(',')) {
+      const afterComma = name.split(',')[1] || '';
+      name = afterComma.replace(/\s*[|].*$/, '').trim();
+    } else {
+      name = name.replace(/^[-\s]*/, '');              // strip leading dash
+      name = name.replace(/\s*[|].*$/, '');            // strip pipe suffix
+      name = name.replace(/\s*-\s*Hushabye.*$/i, ''); // strip series suffix
+      name = name.replace(/\bAlbum\b/gi, '').trim();  // strip word Album
+    }
+    name = name.replace(/\s+/g, ' ').trim();
+    if (!name) name = file.replace(/\.mp3$/i,'');
     const row = document.createElement('div');
     row.className = 'track-row'; row.dataset.idx = i;
     row.innerHTML = `
@@ -602,8 +605,16 @@ function playTrack(idx) {
   document.querySelector('.track-play[data-idx="'+currentIdx+'"]')?.classList.remove('active');
 
   currentIdx = idx;
-  const name = TRACK_FILES[idx].replace(/^\d+[\s_-]*/, '').replace(/_/g, ' ').replace(/\.mp3$/i,'')
-    .replace(/\b\w/g, c => c.toUpperCase());
+  let name = TRACK_FILES[idx].replace(/\.mp3$/i,'');
+  name = name.replace(/^\d+\s*/, '');
+  if (name.includes(',')) {
+    const afterComma = name.split(',')[1] || '';
+    name = afterComma.replace(/\s*[|].*$/, '').trim();
+  } else {
+    name = name.replace(/^[-\s]*/,'').replace(/\s*[|].*$/,'');
+    name = name.replace(/\s*-\s*Hushabye.*$/i,'').replace(/\bAlbum\b/gi,'').trim();
+  }
+  name = name.replace(/\s+/g,' ').trim();
 
   // Show loading
   const playBtn = document.querySelector('.track-play[data-idx="'+idx+'"]');
@@ -663,8 +674,7 @@ document.getElementById('btn-playpause').addEventListener('click', () => {
   else { currentAudio.play(); isPlaying=true; document.getElementById('btn-playpause').textContent='⏸'; document.querySelector('.track-play[data-idx="'+currentIdx+'"]').textContent='⏸'; }
 });
 document.getElementById('btn-prev').addEventListener('click', () => { if(currentIdx>0) playTrack(currentIdx-1); });
-document.getElementById('btn-prev').textContent='◀';
-document.getElementById('btn-next').textContent='▶';
+
 document.getElementById('btn-next').addEventListener('click', () => { if(currentIdx<TRACK_FILES.length-1) playTrack(currentIdx+1); });
 
 document.getElementById('progress-bar').addEventListener('click', e => {
