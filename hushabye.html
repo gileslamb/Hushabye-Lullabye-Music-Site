@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hushabye Lullabye</title>
+<!-- Serve via: python3 -m http.server 8000  — do not open as file:// -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@300;400;600;700&display=swap');
+
+/* ── RESET + ROOT ── */
+:root{--amber:#f4a832;--amber-soft:#f9d07a;--pink:#ff6b9d;--cloud:#c8d8f8;--text:#c8d8f0;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--text);font-family:'Nunito',sans-serif;cursor:none;}
+
+/* ── CURSOR ── */
+#cursor{position:fixed;width:10px;height:10px;background:var(--amber);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .25s,height .25s,background .25s;box-shadow:0 0 10px var(--amber),0 0 20px rgba(244,168,50,.5);mix-blend-mode:screen;}
+#cursor.big{width:30px;height:30px;background:var(--pink);box-shadow:0 0 20px var(--pink);}
+
+/* ── STARFIELD ── */
+#starfield{position:fixed;inset:0;z-index:0;}
+
+/* ── TITLE ── */
+#site-title{position:fixed;top:22px;left:50%;transform:translateX(-50%);text-align:center;z-index:10;opacity:0;animation:fadeDown 2s ease .4s forwards;white-space:nowrap;pointer-events:none;}
+#site-title h1{font-family:'Baloo 2',cursive;font-size:clamp(1.6rem,4vw,3.2rem);font-weight:800;color:var(--amber);text-shadow:0 0 40px rgba(244,168,50,.7),0 2px 0 rgba(0,0,0,.5);}
+#site-title p{font-size:clamp(.65rem,1.1vw,.85rem);font-weight:300;color:var(--cloud);letter-spacing:.25em;text-transform:uppercase;margin-top:4px;opacity:.6;}
+
+/* ── MOBILE STAGE ── */
+#mobile-stage{position:fixed;top:50%;left:50%;transform:translate(-50%,-72%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp 2.5s ease 1s forwards;z-index:2;}
+#rocket-wrap{animation:rocketBob 4s ease-in-out infinite;position:relative;z-index:2;width:180px;height:230px;flex-shrink:0;}
+.rp-body{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:90px;height:160px;background:linear-gradient(160deg,#5bcfcf,#3a9fa0 60%,#2a7a7b);clip-path:polygon(50% 0%,85% 30%,100% 100%,0% 100%,15% 30%);box-shadow:inset -8px 0 20px rgba(0,0,0,.3),0 0 30px rgba(78,205,196,.2);}
+.rp-fin-l,.rp-fin-r{position:absolute;bottom:8px;width:28px;height:50px;background:#2e8b3a;clip-path:polygon(100% 0%,100% 100%,0% 100%);}
+.rp-fin-l{left:calc(50% - 74px);transform:scaleX(-1);}
+.rp-fin-r{right:calc(50% - 74px);}
+.rp-window{position:absolute;bottom:108px;left:50%;transform:translateX(-50%);width:36px;height:36px;background:radial-gradient(circle at 35% 35%,#fff8e1,#f4a832 60%,#b87000);border-radius:50%;border:3px solid #c87000;box-shadow:0 0 12px rgba(244,168,50,.8);cursor:none;transition:box-shadow .3s;}
+.rp-window:hover,.rp-window.playing{box-shadow:0 0 24px rgba(244,168,50,1),0 0 48px rgba(244,168,50,.5);}
+.rp-door{position:absolute;bottom:53px;left:50%;transform:translateX(-50%);width:22px;height:28px;background:var(--pink);border-radius:3px 3px 6px 6px;border:2px solid #cc4477;}
+#mobile-canvas{display:block;flex-shrink:0;margin-top:-42px;position:relative;z-index:3;}
+.hlabel{position:fixed;pointer-events:none;font-family:'Baloo 2',cursive;font-size:.58rem;font-weight:700;color:var(--amber-soft);letter-spacing:.12em;text-transform:uppercase;transform:translateX(-50%);opacity:0;transition:opacity .2s;white-space:normal;text-align:center;max-width:58px;line-height:1.35;z-index:10;text-shadow:0 0 8px rgba(0,0,0,.9);}
+/* Nav stars */
+.nav-star{position:fixed;z-index:15;cursor:none;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.nav-star-dot{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 8px 3px rgba(255,255,255,0.6);animation:navPulse 2.5s ease-in-out infinite;transition:box-shadow .3s;}
+.nav-star:hover .nav-star-dot{box-shadow:0 0 16px 6px rgba(244,168,50,0.9);}
+.nav-star-label{font-family:'Baloo 2',cursive;font-size:.6rem;font-weight:700;color:rgba(244,168,50,0.7);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity .25s;text-shadow:0 0 8px rgba(0,0,0,0.9);}
+.nav-star:hover .nav-star-label{opacity:1;}
+@keyframes navPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+
+/* ── UI CONTROLS ── */
+.ui-btn{position:fixed;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--amber);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .3s,transform .3s;backdrop-filter:blur(8px);z-index:200;}
+.ui-btn:hover{background:rgba(255,255,255,.13);transform:scale(1.1);}
+#audio-btn{top:20px;right:20px;}
+#reset-btn{top:20px;left:20px;}
+
+/* ── DRIFTERS ── */
+.drifter{position:fixed;border-radius:50%;pointer-events:none;z-index:1;opacity:0;animation:drift linear infinite;}
+
+/* ── FLOATING TEXT OVERLAY ── */
+.floating-text{position:fixed;inset:0;z-index:100;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3vh;}
+.floating-text.visible{pointer-events:auto;}
+.floating-text-inner{pointer-events:auto;max-width:560px;text-align:center;padding:0 24px 24px;transform:translateY(60px);opacity:0;transition:transform 1.2s ease-out,opacity 1.2s ease-out;background:radial-gradient(ellipse at 50% 100%, rgba(5,5,26,0.55) 0%, transparent 70%);}
+.floating-text.visible .floating-text-inner{transform:translateY(0);opacity:1;}
+.floating-text h2{font-family:'Baloo 2',cursive;font-size:1.55rem;font-weight:800;color:#f4a832;margin-bottom:12px;text-shadow:0 0 20px rgba(244,168,50,.35);}
+.floating-text h3{font-family:'Baloo 2',cursive;font-size:.95rem;font-weight:600;color:var(--amber-soft);margin:16px 0 5px;}
+.floating-text p{font-size:.93rem;line-height:1.72;color:rgba(200,216,240,0.85);margin-bottom:10px;font-family:'Nunito',sans-serif;}
+.pill-link{display:inline-block;padding:7px 16px;border:1px solid rgba(244,168,50,.3);border-radius:100px;color:var(--amber-soft);text-decoration:none;font-size:.78rem;font-weight:600;letter-spacing:.07em;transition:background .25s,border-color .25s;margin:3px 4px 3px 0;}
+.pill-link:hover{background:rgba(244,168,50,.12);border-color:rgba(244,168,50,.6);}
+.link-row{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.stat-pills{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:rgba(244,168,50,.08);border:1px solid rgba(244,168,50,.18);border-radius:8px;padding:8px 14px;font-size:.78rem;color:var(--amber-soft);}
+.award-row{display:flex;gap:12px;margin:10px 0;flex-wrap:wrap;justify-content:center;}
+.award-badge{background:rgba(244,168,50,.08);border:1px solid rgba(244,168,50,.2);border-radius:10px;padding:12px 15px;font-size:.75rem;text-align:center;color:var(--amber-soft);line-height:1.5;}
+.award-badge strong{display:block;font-family:'Baloo 2',cursive;font-size:1rem;color:var(--amber);}
+.testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px;}
+.testimonial{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;font-size:.85rem;line-height:1.65;position:relative;}
+.testimonial::before{content:'\201C';position:absolute;top:8px;left:12px;font-family:'Baloo 2',cursive;font-size:2.6rem;color:var(--amber);opacity:.18;line-height:1;}
+.testimonial p{opacity:.8;padding-left:4px;}
+.testimonial cite{display:block;margin-top:8px;font-size:.7rem;color:var(--amber-soft);opacity:.6;font-style:normal;}
+.broadcaster-list{font-size:.88rem;line-height:2;color:rgba(200,216,240,.75);margin:8px 0;}
+
+/* ── MUSIC PLAYER (floating transparent) ── */
+#floating-music{position:fixed;inset:0;z-index:100;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3vh;}
+#floating-music.visible{pointer-events:auto;}
+#floating-music-inner{pointer-events:auto;max-width:560px;width:100%;text-align:center;padding:0 24px 24px;transform:translateY(60px);opacity:0;transition:transform 1.2s ease-out,opacity 1.2s ease-out;background:radial-gradient(ellipse at 50% 100%, rgba(5,5,26,0.55) 0%, transparent 70%);}
+#floating-music.visible #floating-music-inner{transform:translateY(0);opacity:1;}
+#track-list{overflow-y:auto;max-height:50vh;padding:20px 0 8px;scrollbar-width:thin;scrollbar-color:rgba(244,168,50,.25) transparent;}
+#track-list::-webkit-scrollbar{width:4px;}
+#track-list::-webkit-scrollbar-thumb{background:rgba(244,168,50,.25);border-radius:2px;}
+.music-header{font-family:'Baloo 2',cursive;font-size:1.3rem;font-weight:800;color:#f4a832;margin-bottom:14px;text-shadow:0 0 20px rgba(244,168,50,.3);}
+.music-header span{font-size:.75rem;font-weight:400;color:rgba(200,216,240,.5);letter-spacing:.1em;margin-left:8px;}
+.track-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;transition:background .2s;cursor:none;}
+.track-row:hover{background:rgba(255,255,255,.05);}
+.track-row.active{background:rgba(244,168,50,.08);}
+.track-num{font-size:.75rem;color:rgba(200,216,240,.35);width:22px;text-align:right;flex-shrink:0;}
+.track-name{flex:1;font-size:.9rem;color:rgba(200,216,240,.88);text-align:left;}
+.track-row.active .track-name{color:var(--amber-soft);}
+.track-dur{font-size:.75rem;color:rgba(200,216,240,.4);flex-shrink:0;}
+.track-play{background:none;border:1px solid rgba(244,168,50,.25);border-radius:50%;width:28px;height:28px;color:var(--amber);font-size:.8rem;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .2s,border-color .2s;flex-shrink:0;}
+.track-play:hover{background:rgba(244,168,50,.15);border-color:var(--amber);}
+.track-loading{font-size:.65rem;color:rgba(200,216,240,.4);}
+.stream-row{padding:12px 12px 8px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+.stream-label{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(200,216,240,.35);margin-right:4px;}
+
+/* ── COMPACT MINI PLAYER ── */
+#mini-player{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:12px;
+  background:rgba(5,5,26,0.55);
+  border:1px solid rgba(244,168,50,0.18);
+  border-radius:40px;padding:8px 18px 8px 14px;
+  backdrop-filter:blur(12px);z-index:101;
+  min-width:280px;max-width:420px;
+  transition:opacity .4s;}
+#mini-player.hidden{display:none;}
+#mini-left{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.mini-btn{background:none;border:none;color:rgba(244,168,50,0.75);font-size:.85rem;cursor:none;transition:color .2s;padding:2px 4px;line-height:1;}
+.mini-btn:hover{color:var(--amber);}
+.mini-btn.play-pause{font-size:1.1rem;color:var(--amber);}
+#mini-centre{flex:1;min-width:0;}
+.mini-track-name{font-size:.72rem;color:var(--amber-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;font-family:'Baloo 2',cursive;}
+.mini-progress-row{display:flex;align-items:center;gap:6px;}
+.time-label{font-size:.6rem;color:rgba(200,216,240,.35);flex-shrink:0;}
+#progress-bar{flex:1;height:2px;background:rgba(255,255,255,.12);border-radius:2px;cursor:none;position:relative;}
+#progress-fill{height:100%;background:var(--amber);border-radius:2px;width:0%;transition:width .25s linear;}
+#vol-slider{width:44px;height:2px;accent-color:var(--amber);cursor:none;flex-shrink:0;}
+/* Override next button to look distinct */
+#btn-next{transform:scaleX(1.0);}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeDown{from{opacity:0;transform:translateX(-50%) translateY(-14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translate(-50%,-72%) translateY(18px)}to{opacity:1;transform:translate(-50%,-72%) translateY(0)}}
+@keyframes rocketBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes drift{0%{opacity:0;transform:translateY(110vh) scale(.8)}5%{opacity:var(--op)}95%{opacity:var(--op)}100%{opacity:0;transform:translateY(-15vh) translateX(var(--dx)) scale(1.1)}}
+@keyframes portalPulse{0%,100%{box-shadow:0 0 12px rgba(244,168,50,.8)}50%{box-shadow:0 0 28px rgba(244,168,50,1),0 0 56px rgba(244,168,50,.5)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  #mobile-stage{transform:translate(-50%,-72%) scale(.72);transform-origin:top center;}
+  #track-list{padding:18px 20px 12px;}
+  .testimonials{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="starfield"></canvas>
+
+<!-- ── TITLE ── -->
+<div id="site-title">
+  <h1>Hushabye Lullabye</h1>
+  <p>A CBeebies &amp; Curious Dreamers experience</p>
+</div>
+
+<!-- ── ROCKET MOBILE ── -->
+<!-- SWAP POINT A: replace CSS rocket with PNG
+     <img id="rocket-img" src="rocket.png" style="width:160px;height:auto;">
+     then remove the .rp-body .rp-fin .rp-window .rp-door divs -->
+<div id="mobile-stage">
+  <div id="rocket-wrap">
+    <div class="rp-fin-l"></div>
+    <div class="rp-fin-r"></div>
+    <div class="rp-body"></div>
+    <div class="rp-window" id="porthole" title="The Songs"></div>
+    <div class="rp-door"></div>
+  </div>
+  <canvas id="mobile-canvas" width="500" height="300"></canvas>
+</div>
+
+<!-- ── FLOATING CONTENT (transparent over stars) ── -->
+<div id="floating-text" class="floating-text">
+  <div class="floating-text-inner" id="floating-text-content"></div>
+</div>
+
+<!-- ── MUSIC LIST (transparent over stars) ── -->
+<div id="floating-music" class="floating-text">
+  <div id="floating-music-inner">
+    <div class="music-header">The Songs <span>Hushabye Lullabye</span></div>
+    <div id="tracks-container"></div>
+    <div class="stream-row">
+      <span class="stream-label">Stream &amp; Buy</span>
+      <a href="#" class="pill-link">Spotify ↗</a>
+      <a href="#" class="pill-link">Apple Music ↗</a>
+      <a href="#" class="pill-link">Bandcamp ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMPACT BOTTOM PLAYER ── -->
+<div id="mini-player" class="hidden">
+  <div id="mini-left">
+    <button class="mini-btn" id="btn-prev">◀</button>
+    <button class="mini-btn play-pause" id="btn-playpause">▶</button>
+    <button class="mini-btn" id="btn-next">▶</button>
+  </div>
+  <div id="mini-centre">
+    <div class="mini-track-name" id="mini-track-name">—</div>
+    <div class="mini-progress-row">
+      <span class="time-label" id="time-current">0:00</span>
+      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <span class="time-label" id="time-total">0:00</span>
+    </div>
+  </div>
+  <input type="range" id="vol-slider" min="0" max="1" step="0.02" value="0.8" title="Volume">
+</div>
+
+<!-- ── PERSISTENT UI ── -->
+<button class="ui-btn" id="reset-btn" title="Reset">↺</button>
+<button class="ui-btn" id="audio-btn" title="Ambient sound">♪</button>
+
+<script>
+// ═══════════════════════════════════════════════
+// CURSOR
+// ═══════════════════════════════════════════════
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top  = e.clientY + 'px';
+});
+function addBigCursor(els) {
+  els.forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  });
+}
+addBigCursor(document.querySelectorAll('.ui-btn, .pill-link, .track-play, .mini-btn, #porthole, #progress-bar'));
+
+// ═══════════════════════════════════════════════
+// STARFIELD  (original code preserved exactly)
+// ═══════════════════════════════════════════════
+const sf = document.getElementById('starfield'), sctx = sf.getContext('2d');
+let W, H, stars = [];
+function resize() { W = sf.width = window.innerWidth; H = sf.height = window.innerHeight; }
+resize(); window.addEventListener('resize', () => { resize(); initStars(); });
+function initStars() {
+  stars = [];
+  for (let i = 0; i < Math.floor(W * H / 3000); i++)
+    stars.push({ x:Math.random()*W, y:Math.random()*H, z:Math.random(),
+      r:Math.random()*1.6+.2, a:Math.random(), da:(Math.random()-.5)*.003,
+      hue:Math.random()<.15?200+Math.random()*60:220,
+      vx:(Math.random()-.5)*.04, vy:(Math.random()-.5)*.02,
+      ox:0, oy:0 }); // ox/oy = repulsion offset
+}
+initStars();
+let mxi = 0, myi = 0, mxAbs = -999, myAbs = -999;
+document.addEventListener('mousemove', e => {
+  mxi = (e.clientX / W - .5) * 2; myi = (e.clientY / H - .5) * 2;
+  mxAbs = e.clientX; myAbs = e.clientY;
+});
+
+function drawStars() {
+  sctx.clearRect(0, 0, W, H);
+  const bg = sctx.createRadialGradient(W*.5, H*.4, 0, W*.5, H*.4, Math.max(W,H)*.8);
+  bg.addColorStop(0, '#1a0a3d'); bg.addColorStop(.4, '#0d0835'); bg.addColorStop(1, '#05051a');
+  sctx.fillStyle = bg; sctx.fillRect(0, 0, W, H);
+  for (const s of stars) {
+    // Mouse repulsion
+    const dx = s.x - mxAbs, dy = s.y - myAbs;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 140 && dist > 0) {
+      const force = (140 - dist) / 140 * 0.7;
+      s.ox += (dx / dist) * force;
+      s.oy += (dy / dist) * force;
+    }
+    s.ox *= 0.92; s.oy *= 0.92; // drag back
+    s.x += s.vx + mxi * s.z * .15 + s.ox;
+    s.y += s.vy + myi * s.z * .08 + s.oy;
+    s.a += s.da;
+    if (s.a > 1) { s.a = 1; s.da *= -1; } if (s.a < .1) { s.a = .1; s.da *= -1; }
+    if (s.x < 0) s.x = W; if (s.x > W) s.x = 0; if (s.y < 0) s.y = H; if (s.y > H) s.y = 0;
+    const sz = s.r * (.5 + s.z * .5);
+    const g = sctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, sz*3);
+    g.addColorStop(0, `hsla(${s.hue},80%,95%,${s.a})`);
+    g.addColorStop(.4, `hsla(${s.hue},60%,80%,${s.a*.4})`);
+    g.addColorStop(1, `hsla(${s.hue},40%,60%,0)`);
+    sctx.beginPath(); sctx.arc(s.x, s.y, sz*3, 0, Math.PI*2); sctx.fillStyle = g; sctx.fill();
+    sctx.beginPath(); sctx.arc(s.x, s.y, sz, 0, Math.PI*2);
+    sctx.fillStyle = `hsla(${s.hue},90%,98%,${s.a})`; sctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+requestAnimationFrame(drawStars);
+
+// ═══════════════════════════════════════════════
+// 3D RING MOBILE  (original code preserved exactly)
+// ═══════════════════════════════════════════════
+const mc = document.getElementById('mobile-canvas');
+const mctx = mc.getContext('2d');
+const CX=250, CY=48, RX=112, TILT=0.04, RY=RX*TILT, THICK=52, SPEED=0.004;
+
+// 10 song hangers — evenly spaced around the ring
+// label = song name shown on hover, trackIdx = which track to play on click
+const TRACK_NAMES = [
+  'Hushabye Lullabye',
+  'Chumble Bumble',
+  'Spring Showers',
+  'Bathtime Ducks',
+  'Summer Sunshine',
+  'Flutterbye Butterfly',
+  'Autumn Leaves',
+  'Paper Boats',
+  'Winter Snow',
+  'Star Ballet'
+];
+const HANGER_EMOJIS = ['⭐','🌙','💛','🌸','☀️','🦋','🍂','🚢','❄️','💫'];
+const HANGER_COLS   = ['#f9d070','#a0c8ff','#ffe080','#ffb0d0','#ffd060','#c0d8ff','#f0b060','#80c8ff','#d0e8ff','#e0d0ff'];
+const HANGER_LENS   = [110,132,105,122,115,128,108,118,125,112];
+const HANGERS = TRACK_NAMES.map((name, i) => ({
+  a: (i / TRACK_NAMES.length) * Math.PI * 2,
+  emoji: HANGER_EMOJIS[i],
+  label: name,
+  trackIdx: i,
+  tLen: HANGER_LENS[i],
+  col: HANGER_COLS[i]
+}));
+
+const heroEl = document.getElementById('mobile-stage');
+const labels = HANGERS.map(h => {
+  const el = document.createElement('div'); el.className = 'hlabel';
+  el.innerHTML = h.label.split(' ').join('<br>'); document.body.appendChild(el); return el;
+});
+
+let ringAngle = 0, ringAngleTarget = null, hitZones = [];
+
+function proj(theta) {
+  const wx = Math.cos(theta)*RX, wz = Math.sin(theta)*RX;
+  return { sx: CX+wx, sy: CY-wz*TILT, depth: wz/RX };
+}
+
+function drawFrame() {
+  mctx.clearRect(0, 0, 500, 300);
+  // Smooth reset lerp
+  if (ringAngleTarget !== null) {
+    ringAngle += (ringAngleTarget - ringAngle) * 0.04;
+    if (Math.abs(ringAngle - ringAngleTarget) < 0.001) ringAngleTarget = null;
+  } else {
+    ringAngle += SPEED;
+  }
+
+  const hd = HANGERS.map((h, i) => {
+    const theta = h.a + ringAngle;
+    const {sx, sy, depth} = proj(theta);
+    return {...h, sx, sy, depth, objX:sx, objY:sy+h.tLen, theta};
+  });
+
+  const far  = hd.filter(d => d.depth < 0).sort((a,b) => a.depth - b.depth);
+  const near = hd.filter(d => d.depth >= 0).sort((a,b) => b.depth - a.depth);
+
+  far.forEach(d => drawHanger(d, true));
+  drawRing();
+  near.forEach(d => drawHanger(d, false));
+
+  hitZones = [];
+  const cr = mc.getBoundingClientRect();
+  hd.forEach((d, i) => {
+    hitZones.push({x:d.objX, y:d.objY, r:28, trackIdx:d.trackIdx});
+    const frontness = Math.max(0, (d.depth+1)/2);
+    labels[i].style.left = (cr.left + d.objX) + 'px';
+    labels[i].style.top  = (cr.top  + d.objY + 30) + 'px';
+    labels[i].style.opacity = String(Math.pow(frontness, 3) * 0.95);
+  });
+
+  requestAnimationFrame(drawFrame);
+}
+
+function drawRing() {
+  const N=14, SR=30;
+  const jitter=[1.0,1.22,0.84,1.18,0.90,1.28,0.82,1.15,0.95,1.20,0.86,1.10,1.24,0.88];
+  const spheres=[];
+  for(let i=0;i<N;i++){
+    const theta=(i/N)*Math.PI*2+ringAngle;
+    const wx=Math.cos(theta)*RX, wz=Math.sin(theta)*RX;
+    spheres.push({sx:CX+wx, sy:CY-wz*TILT, depth:wz/RX, idx:i});
+  }
+  spheres.sort((a,b)=>a.depth-b.depth);
+  for(const s of spheres){
+    const front=(s.depth+1)/2, r=SR*jitter[s.idx]*(0.45+0.55*front);
+    mctx.save(); mctx.globalAlpha=0.18+0.82*front;
+    mctx.beginPath(); mctx.ellipse(s.sx+4*front,s.sy+r*0.55,r*0.75,r*0.22,0,0,Math.PI*2);
+    mctx.fillStyle="rgba(60,100,160,0.18)"; mctx.fill();
+    const g=mctx.createRadialGradient(s.sx-r*.30,s.sy-r*.30,r*.04,s.sx+r*.10,s.sy+r*.10,r);
+    g.addColorStop(0,"rgba(255,255,255,1.00)"); g.addColorStop(0.30,"rgba(240,248,255,0.98)");
+    g.addColorStop(0.62,"rgba(208,228,252,0.95)"); g.addColorStop(1,"rgba(148,188,232,0.88)");
+    mctx.beginPath(); mctx.arc(s.sx,s.sy,r,0,Math.PI*2); mctx.fillStyle=g;
+    if(front>0.4){mctx.shadowColor="rgba(220,235,255,0.6)"; mctx.shadowBlur=16;}
+    mctx.fill(); mctx.shadowBlur=0;
+    const pr=r*.52,px=s.sx-r*.33,py=s.sy-r*.35;
+    const g2=mctx.createRadialGradient(px-pr*.25,py-pr*.25,pr*.04,px+pr*.1,py+pr*.1,pr);
+    g2.addColorStop(0,"rgba(255,255,255,0.97)"); g2.addColorStop(1,"rgba(195,220,248,0.72)");
+    mctx.beginPath(); mctx.arc(px,py,pr,0,Math.PI*2); mctx.fillStyle=g2; mctx.fill();
+    const pr3=r*.38,px3=s.sx+r*.28,py3=s.sy+r*.18;
+    const g3=mctx.createRadialGradient(px3-pr3*.2,py3-pr3*.2,pr3*.04,px3,py3,pr3);
+    g3.addColorStop(0,"rgba(245,252,255,0.90)"); g3.addColorStop(1,"rgba(180,208,240,0.60)");
+    mctx.beginPath(); mctx.arc(px3,py3,pr3,0,Math.PI*2); mctx.fillStyle=g3; mctx.fill();
+    mctx.restore();
+  }
+}
+
+function drawHanger(d, isFar) {
+  const alpha  = isFar ? 0.28 : 1.0;
+  const dscale = 0.55 + 0.45 * ((d.depth+1)/2);
+  mctx.save(); mctx.globalAlpha = alpha;
+  mctx.beginPath(); mctx.moveTo(d.sx, d.sy); mctx.lineTo(d.objX, d.objY);
+  const ta = Math.max(0, (d.depth+1)/2);
+  mctx.strokeStyle = "rgba(200,220,255," + ta.toFixed(2) + ")";
+  mctx.lineWidth = 1; mctx.stroke();
+  const fs = Math.round(24 * dscale);
+  mctx.font = `${fs}px serif`; mctx.textAlign = 'center'; mctx.textBaseline = 'middle';
+  if (!isFar) { mctx.shadowColor = d.col; mctx.shadowBlur = 14; }
+  // SWAP POINT B: replace emoji with PNG sequence
+  // if(hangerImages[d.emoji] && hangerImages[d.emoji][currentFrame]){
+  //   mctx.drawImage(hangerImages[d.emoji][currentFrame], d.objX-fw/2, d.objY-fh/2, fw*dscale, fh*dscale)
+  // } else { // fallback emoji below
+  mctx.fillText(d.emoji, d.objX, d.objY);
+  mctx.restore();
+}
+
+// Canvas click — open overlay (text or music)
+// Convert display coords to canvas coords (canvas may be scaled)
+mc.addEventListener('click', e => {
+  const r=mc.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(mc.width/r.width), my=(e.clientY-r.top)*(mc.height/r.height);
+  for (const z of hitZones) {
+    const dx=mx-z.x, dy=my-z.y;
+    if (dx*dx+dy*dy < z.r*z.r) {
+      // Play that song and show its name
+      playTrack(z.trackIdx);
+      return;
+    }
+  }
+  closeAll();
+});
+mc.addEventListener('mousemove', e => {
+  const r=mc.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(mc.width/r.width), my=(e.clientY-r.top)*(mc.height/r.height);
+  cursor.classList.toggle('big', hitZones.some(z=>{const dx=mx-z.x,dy=my-z.y;return dx*dx+dy*dy<z.r*z.r;}));
+});
+
+// Porthole opens music
+document.getElementById('porthole').addEventListener('click', () => showMusicList());
+
+requestAnimationFrame(drawFrame);
+
+// ═══════════════════════════════════════════════
+// DRIFTING POM-POMS  (original preserved)
+// ═══════════════════════════════════════════════
+const cols=['#e03030','#7030d0','#22c060','#f0a000','#2070d0','#d020a0','#00b8b8','#e07020'];
+function spawnDrifter(){
+  const d=document.createElement('div'); d.className='drifter';
+  const size=18+Math.random()*30, dur=18+Math.random()*20, col=cols[Math.floor(Math.random()*cols.length)];
+  d.style.cssText=`width:${size}px;height:${size}px;background:radial-gradient(circle at 35% 35%,${col}bb,${col}44);left:${Math.random()*100}vw;--op:${.05+Math.random()*.1};--dx:${(Math.random()-.5)*120}px;animation-duration:${dur}s;animation-delay:${Math.random()*-18}s;box-shadow:inset -2px -2px 8px rgba(0,0,0,.3);`;
+  document.body.appendChild(d); setTimeout(()=>d.remove(),(dur+3)*1000);
+}
+for(let i=0;i<14;i++) spawnDrifter(); setInterval(spawnDrifter, 2800);
+
+// ═══════════════════════════════════════════════
+// FLOATING UI + NAV STARS
+// ═══════════════════════════════════════════════
+const floatingText  = document.getElementById('floating-text');
+const floatingTextContent = document.getElementById('floating-text-content');
+const floatingMusic = document.getElementById('floating-music');
+let currentPanel = null;
+
+// Nav stars — 4 fixed glowing points for About/Watch/Parents/Press
+const NAV_STARS = [
+  { id:'watch',   label:'Watch',   x:'12%', y:'22%', hue:'55',  content: `<h2>Watch Hushabye Lullabye</h2><p>An award-winning BBC CBeebies animated series — a gentle, beautiful world of original lullabies designed to help little ones settle into peaceful sleep.</p><div class="stat-pills"><div class="stat-pill">650K+ viewers per episode</div><div class="stat-pill">6 countries</div><div class="stat-pill">10M+ streams</div></div><div class="link-row"><a href="https://www.bbc.co.uk/cbeebies" target="_blank" class="pill-link">CBeebies ↗</a><a href="https://www.bbc.co.uk/iplayer" target="_blank" class="pill-link">BBC iPlayer ↗</a></div>` },
+  { id:'about',   label:'About',   x:'88%', y:'18%', hue:'200', content: `<h2>About the Show</h2><p>Hushabye Lullabye lives in the space between waking and sleep — a handmade world of felt textures, original lullabies and lyrical journeys through a universe built for little dreamers.</p><h3>Sacha Kyle — Creator & Director</h3><p>Award-winning director with twenty years across animation, live-action and drama, deeply informed by developmental science.</p><h3>Giles Lamb — Composer & Sound Designer</h3><p>Composer merging acoustic, synthesised and found sounds into worlds you can feel.</p><div class="link-row"><a href="https://curiousdreamers.com" target="_blank" class="pill-link">curiousdreamers.com ↗</a></div>` },
+  { id:'parents', label:'Parents', x:'8%',  y:'72%', hue:'280', content: `<h2>For Parents & Caregivers</h2><p>Singing together releases oxytocin — the love hormone — placing parent and child in the same emotional space. Clinically-informed and trusted by families of neurodiverse children worldwide.</p><div class="testimonials"><div class="testimonial"><p>The songs have become a way for my non-verbal son to communicate with me as he sings his way to sleep.</p><cite>— James and Mum Smith</cite></div><div class="testimonial"><p>It literally stopped her in her tracks. She watched it 7 times. Wonderfully calming.</p><cite>— Joe Breen</cite></div><div class="testimonial"><p>My son is profoundly disabled and still adores Hushabye as part of his calming routine.</p><cite>— Charlotte Keenan</cite></div></div>` },
+  { id:'press',   label:'Press',   x:'90%', y:'75%', hue:'30',  content: `<h2>Press & Broadcast</h2><div class="award-row"><div class="award-badge"><strong>RTS</strong>Best Children's Series</div><div class="award-badge"><strong>RTS</strong>Best Animation & VFX</div></div><h3>Broadcast Partners</h3><p class="broadcaster-list">BBC CBeebies · BBC iPlayer · YOUKU China · NRK Norway · YLE Finland · Daekyo South Korea · Hop Israel · TVO Canada</p><div class="link-row"><a href="https://curiousdreamers.com" target="_blank" class="pill-link">Press enquiries ↗</a></div>` },
+  { id:'music',   label:'Music',   x:'50%', y:'88%', hue:'55',  content: null }
+];
+
+NAV_STARS.forEach((ns, i) => {
+  const el = document.createElement('div');
+  el.className = 'nav-star';
+  el.style.cssText = `left:${ns.x};top:${ns.y};`;
+  // Stagger pulse animation
+  el.innerHTML = `<div class="nav-star-dot" style="animation-delay:${i*0.5}s;box-shadow:0 0 8px 3px hsla(${ns.hue},80%,75%,0.55)"></div><div class="nav-star-label">${ns.label}</div>`;
+  el.addEventListener('click', () => {
+    if (ns.id === 'music') showMusicList();
+    else showContent(ns.content, ns.id);
+  });
+  document.body.appendChild(el);
+});
+
+function showContent(html, id) {
+  if (currentPanel === id) { closeAll(); return; }
+  closeAll();
+  currentPanel = id;
+  floatingTextContent.innerHTML = html;
+  addBigCursor(floatingTextContent.querySelectorAll('.pill-link'));
+  floatingText.classList.add('visible');
+}
+
+function showMusicList() {
+  if (currentPanel === 'music') { closeAll(); return; }
+  closeAll();
+  currentPanel = 'music';
+  floatingMusic.classList.add('visible');
+}
+
+function closeAll() {
+  floatingText.classList.remove('visible');
+  floatingMusic.classList.remove('visible');
+  currentPanel = null;
+}
+
+document.getElementById('starfield').addEventListener('click', closeAll);
+floatingText.addEventListener('click', e => { if (!e.target.closest('.floating-text-inner')) closeAll(); });
+document.getElementById('floating-music-inner')?.addEventListener('click', e => e.stopPropagation());
+
+addBigCursor(document.querySelectorAll('.pill-link, .track-play, .mini-btn, #progress-bar, .track-row, .nav-star'));
+
+// ═══════════════════════════════════════════════
+// MUSIC PLAYER
+// ═══════════════════════════════════════════════
+// Tracks: scan mp3/ folder via directory listing (Python http.server) or use fallback
+const TRACK_FILES_FALLBACK = [
+  '01 Hushabye Lullabye, Goodnight Dreams | CBeebies.mp3',
+  '02 - Chumble Bumble.mp3',
+  '03 - Spring Showers.mp3',
+  '04 - Bathtime ducks.mp3',
+  '05 - Summer Sunshine.mp3',
+  '06 - Flutterbye Butterfly.mp3',
+  '07 - Autumn Leaves.mp3',
+  '08 - Paper Boats.mp3',
+  '09 - Winter snow.mp3',
+  '10 - Star Ballet Album.mp3'
+];
+let TRACK_FILES = [];
+
+async function loadTracks() {
+  if (window.location.protocol === 'file:') {
+    TRACK_FILES = [...TRACK_FILES_FALLBACK];
+  } else {
+    try {
+      const res = await fetch('mp3/');
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const links = doc.querySelectorAll('a[href$=".mp3"]');
+      TRACK_FILES = Array.from(links).map(a => decodeURIComponent(a.getAttribute('href'))).filter(Boolean).sort();
+    } catch(e) {}
+    if (TRACK_FILES.length === 0) TRACK_FILES = [...TRACK_FILES_FALLBACK];
+  }
+
+  const container = document.getElementById('tracks-container');
+
+  if (TRACK_FILES.length === 0) {
+    container.innerHTML = '<p style="color:rgba(200,216,240,.35);font-size:.85rem;padding:8px 0;">Tracks coming soon — check back shortly ✦</p>';
+    return;
+  }
+
+  container.innerHTML = '';
+  TRACK_FILES.forEach((file, i) => {
+    const name = file.replace(/^\d+[\s_-]*/, '').replace(/_/g, ' ').replace(/\.mp3$/i, '')
+      .replace(/\b\w/g, c => c.toUpperCase());
+    const row = document.createElement('div');
+    row.className = 'track-row'; row.dataset.idx = i;
+    row.innerHTML = `
+      <span class="track-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="track-name">${name}</span>
+      <span class="track-dur" id="dur-${i}">–:––</span>
+      <button class="track-play" data-idx="${i}" title="Play ${name}">▶</button>`;
+    container.appendChild(row);
+    // Preload duration
+    const tmp = new Audio('mp3/' + file);
+    tmp.addEventListener('loadedmetadata', () => {
+      document.getElementById('dur-'+i).textContent = fmtTime(tmp.duration);
+    });
+  });
+
+  addBigCursor(container.querySelectorAll('.track-play,.track-row'));
+  document.querySelectorAll('.track-play').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx);
+      if (currentIdx === idx && isPlaying) {
+        currentAudio.pause();
+        isPlaying = false;
+        btn.textContent = '▶';
+        document.getElementById('btn-playpause').textContent = '▶';
+      } else {
+        playTrack(idx);
+      }
+    });
+  });
+  document.querySelectorAll('.track-row').forEach(row => {
+    row.addEventListener('click', e => {
+      if (e.target.closest('.track-play')) return;
+      playTrack(parseInt(row.dataset.idx));
+    });
+  });
+}
+
+let currentAudio = null, currentIdx = -1, isPlaying = false;
+
+function playTrack(idx) {
+  if (idx < 0 || idx >= TRACK_FILES.length) return;
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+  // Update UI
+  document.querySelectorAll('.track-row').forEach((r,i) => r.classList.toggle('active', i===idx));
+  document.querySelector('.track-play[data-idx="'+currentIdx+'"]')?.classList.remove('active');
+
+  currentIdx = idx;
+  const name = TRACK_FILES[idx].replace(/^\d+[\s_-]*/, '').replace(/_/g, ' ').replace(/\.mp3$/i,'')
+    .replace(/\b\w/g, c => c.toUpperCase());
+
+  // Show loading
+  const playBtn = document.querySelector('.track-play[data-idx="'+idx+'"]');
+  if (playBtn) playBtn.textContent = '…';
+
+  currentAudio = new Audio('mp3/' + TRACK_FILES[idx]);
+  currentAudio.volume = parseFloat(document.getElementById('vol-slider').value);
+
+  currentAudio.addEventListener('canplay', () => {
+    if (playBtn) playBtn.textContent = '⏸';
+    currentAudio.play();
+    isPlaying = true;
+    document.getElementById('mini-player').classList.remove('hidden');
+    document.getElementById('mini-track-name').textContent = name;
+    document.getElementById('btn-playpause').textContent = '⏸';
+    document.getElementById('time-total').textContent = fmtTime(currentAudio.duration);
+    document.getElementById('porthole').classList.add('playing');
+  });
+
+  currentAudio.addEventListener('timeupdate', updateProgress);
+  currentAudio.addEventListener('ended', () => {
+    if (currentIdx < TRACK_FILES.length - 1) playTrack(currentIdx + 1);
+    else stopPlayer();
+  });
+}
+
+function stopPlayer() {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  isPlaying = false;
+  document.querySelectorAll('.track-row').forEach(r => r.classList.remove('active'));
+  document.querySelectorAll('.track-play').forEach(b => b.textContent = '▶');
+  document.getElementById('btn-playpause').textContent = '▶';
+  document.getElementById('porthole').classList.remove('playing');
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('time-current').textContent = '0:00';
+  document.getElementById('mini-player').classList.add('hidden');
+  currentIdx = -1;
+}
+
+function updateProgress() {
+  if (!currentAudio || !currentAudio.duration) return;
+  const pct = (currentAudio.currentTime / currentAudio.duration) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('time-current').textContent = fmtTime(currentAudio.currentTime);
+}
+
+function fmtTime(s) {
+  if (!isFinite(s)) return '–:––';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m + ':' + String(sec).padStart(2,'0');
+}
+
+// Mini player controls
+document.getElementById('btn-playpause').addEventListener('click', () => {
+  if (!currentAudio) return;
+  if (isPlaying) { currentAudio.pause(); isPlaying=false; document.getElementById('btn-playpause').textContent='▶'; document.querySelector('.track-play[data-idx="'+currentIdx+'"]').textContent='▶'; }
+  else { currentAudio.play(); isPlaying=true; document.getElementById('btn-playpause').textContent='⏸'; document.querySelector('.track-play[data-idx="'+currentIdx+'"]').textContent='⏸'; }
+});
+document.getElementById('btn-prev').addEventListener('click', () => { if(currentIdx>0) playTrack(currentIdx-1); });
+document.getElementById('btn-prev').textContent='◀';
+document.getElementById('btn-next').textContent='▶';
+document.getElementById('btn-next').addEventListener('click', () => { if(currentIdx<TRACK_FILES.length-1) playTrack(currentIdx+1); });
+
+document.getElementById('progress-bar').addEventListener('click', e => {
+  if (!currentAudio) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  currentAudio.currentTime = ((e.clientX - r.left) / r.width) * currentAudio.duration;
+});
+
+document.getElementById('vol-slider').addEventListener('input', e => {
+  if (currentAudio) currentAudio.volume = parseFloat(e.target.value);
+});
+
+// Porthole playing pulse
+// (class .playing added/removed by player — CSS handles animation)
+
+loadTracks();
+
+// ═══════════════════════════════════════════════
+// AMBIENT AUDIO
+// ═══════════════════════════════════════════════
+let ambientAudio = null, ambientPlaying = false;
+const audioBtn = document.getElementById('audio-btn');
+
+async function startAmbient() {
+  // Try mp3/soundscape.mp3 first
+  try {
+    ambientAudio = new Audio('mp3/soundscape.mp3');
+    ambientAudio.loop = true; ambientAudio.volume = 0;
+    await ambientAudio.play();
+    fadeAmbient(0.35);
+    return;
+  } catch(e) {}
+  // Fallback: Web Audio sine pad
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const gain = ctx.createGain(); gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.07, ctx.currentTime+3); gain.connect(ctx.destination);
+  [[261.63,0],[261.63,5],[392,0],[523.25,0]].forEach(([f,dt])=>{
+    const o=ctx.createOscillator(), v=ctx.createGain();
+    o.type='sine'; o.frequency.value=f; o.detune.value=dt; v.gain.value=.25;
+    o.connect(v); v.connect(gain); o.start();
+  });
+  ambientAudio = { _ctx:ctx, _gain:gain, _webAudio:true,
+    fade(vol){ gain.gain.linearRampToValueAtTime(vol, ctx.currentTime+1.5); }
+  };
+}
+
+function fadeAmbient(vol) {
+  if (!ambientAudio) return;
+  if (ambientAudio._webAudio) { ambientAudio.fade(vol); return; }
+  const start = ambientAudio.volume, steps = 30;
+  let i = 0;
+  clearInterval(ambientAudio._fadeTimer);
+  ambientAudio._fadeTimer = setInterval(() => {
+    ambientAudio.volume = start + (vol - start) * (++i / steps);
+    if (i >= steps) clearInterval(ambientAudio._fadeTimer);
+  }, 50);
+}
+
+audioBtn.addEventListener('click', async () => {
+  if (!ambientAudio) { await startAmbient(); ambientPlaying=true; audioBtn.textContent='♫'; return; }
+  if (ambientPlaying) { fadeAmbient(0); ambientPlaying=false; audioBtn.textContent='♪'; }
+  else { fadeAmbient(0.35); ambientPlaying=true; audioBtn.textContent='♫'; }
+});
+
+// ═══════════════════════════════════════════════
+// RESET BUTTON
+// ═══════════════════════════════════════════════
+document.getElementById('reset-btn').addEventListener('click', () => {
+  closeAll();
+  // Smoothly lerp ringAngle back to nearest 0 (modulo 2PI)
+  const current = ringAngle % (Math.PI * 2);
+  const nearest = current > Math.PI ? Math.PI * 2 : 0;
+  ringAngleTarget = ringAngle - current + nearest;
+});
+
+</script>
+</body>
+</html>
