@@ -124,8 +124,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .track-row.active .track-name{color:var(--amber-soft);}
 .track-dur{font-size:.6rem;color:rgba(200,216,240,.4);flex-shrink:0;}
 .track-play{background:none;border:1px solid rgba(244,168,50,.25);border-radius:50%;width:20px;height:20px;color:var(--amber);font-size:.6rem;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .2s,border-color .2s;flex-shrink:0;}
-.track-progress{height:2px;background:rgba(20,40,80,0.2);border-radius:1px;overflow:hidden;margin-top:2px;cursor:pointer;}
-.track-progress-fill{height:100%;background:rgba(20,40,80,0.7);border-radius:1px;width:0%;transition:width .2s linear;}
+.track-progress{height:4px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;margin-top:4px;cursor:pointer;}
+.track-progress-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber-soft));border-radius:2px;width:0%;transition:width .2s linear;box-shadow:0 0 6px rgba(244,168,50,0.4);}
 .track-play:hover{background:rgba(244,168,50,.15);border-color:var(--amber);}
 
 
@@ -539,6 +539,7 @@ function drawHanger(d, isFar, hoverAmt = 0) {
 
 // Canvas click — use capture phase so we handle before nav stars/menu clouds can intercept
 function handleCanvasAreaClick(e) {
+  if (e.target.closest('#floating-music-inner') || e.target.closest('.floating-text-inner')) return;
   const r = mc.getBoundingClientRect();
   if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
   e.stopPropagation();
@@ -795,7 +796,7 @@ async function loadTracks() {
         currentAudio.pause();
         isPlaying = false;
         btn.textContent = '▶';
-        document.getElementById('btn-playpause').textContent = '▶';
+        document.getElementById('btn-playpause').textContent = 'Play';
       } else {
         playTrack(idx);
       }
@@ -822,9 +823,9 @@ function playTrack(idx) {
   if (bgTheme && !bgTheme.paused) bgTheme.pause();
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 
-  // Update UI
+  // Update UI — reset all play buttons and progress before switching
+  document.querySelectorAll('.track-play').forEach(b => { b.textContent = '▶'; });
   document.querySelectorAll('.track-row').forEach((r,i) => r.classList.toggle('active', i===idx));
-  document.querySelector('.track-play[data-idx="'+currentIdx+'"]')?.classList.remove('active');
   document.querySelectorAll('.track-progress-fill').forEach(el => el.style.width = '0%');
 
   currentIdx = idx;
