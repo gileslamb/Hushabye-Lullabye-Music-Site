@@ -21,12 +21,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 #starfield{position:fixed;inset:0;z-index:0;}
 
 /* ── TITLE ── */
-#site-title{position:fixed;top:22px;left:50%;transform:translateX(-50%);text-align:center;z-index:10;opacity:0;animation:fadeDown 2s ease .4s forwards;white-space:nowrap;pointer-events:none;}
+#site-title{position:fixed;top:22px;left:50%;transform:translateX(-50%);text-align:center;z-index:10;opacity:0;animation:fadeDown 2s ease .4s forwards;white-space:nowrap;pointer-events:none;margin-top:36px;}
 #site-title h1{font-family:'Baloo 2',cursive;font-size:clamp(1.6rem,4vw,3.2rem);font-weight:800;color:var(--amber);text-shadow:0 0 40px rgba(244,168,50,.7),0 2px 0 rgba(0,0,0,.5);}
 #site-title p{font-size:clamp(.65rem,1.1vw,.85rem);font-weight:300;color:rgba(180,210,240,0.9);letter-spacing:.25em;text-transform:uppercase;margin-top:4px;opacity:.6;transition:color 0.6s ease;}
 
 /* ── MOBILE STAGE ── */
-#mobile-stage{position:fixed;top:50%;left:50%;transform:translate(-50%,-45%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp 2.5s ease 1s forwards;z-index:2;}
+#mobile-stage{position:fixed;top:50%;left:50%;transform:translate(-50%,-45%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp 2.5s ease 1s forwards;z-index:20;}
 #rocket-wrap{animation:rocketBob 4s ease-in-out infinite;position:relative;z-index:2;width:180px;height:230px;flex-shrink:0;transform:translateX(-12px);}
 .rp-body{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:90px;height:160px;background:linear-gradient(160deg,#5bcfcf,#3a9fa0 60%,#2a7a7b);clip-path:polygon(50% 0%,85% 30%,100% 100%,0% 100%,15% 30%);box-shadow:inset -8px 0 20px rgba(0,0,0,.3),0 0 30px rgba(78,205,196,.2);}
 .rp-fin-l,.rp-fin-r{position:absolute;bottom:8px;width:28px;height:50px;background:#2e8b3a;clip-path:polygon(100% 0%,100% 100%,0% 100%);}
@@ -35,7 +35,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .rp-window{position:absolute;bottom:108px;left:50%;transform:translateX(-50%);width:36px;height:36px;background:radial-gradient(circle at 35% 35%,#fff8e1,#f4a832 60%,#b87000);border-radius:50%;border:3px solid #c87000;box-shadow:0 0 12px rgba(244,168,50,.8);cursor:none;transition:box-shadow .3s;}
 .rp-window:hover,.rp-window.playing{box-shadow:0 0 24px rgba(244,168,50,1),0 0 48px rgba(244,168,50,.5);}
 .rp-door{position:absolute;bottom:53px;left:50%;transform:translateX(-50%);width:22px;height:28px;background:var(--pink);border-radius:3px 3px 6px 6px;border:2px solid #cc4477;}
-#mobile-canvas{display:block;flex-shrink:0;margin-top:-42px;position:relative;z-index:3;}
+#mobile-canvas{display:block;flex-shrink:0;margin-top:-42px;position:relative;z-index:3;pointer-events:auto;}
 .hlabel{position:fixed;pointer-events:none;font-family:'Baloo 2',cursive;font-size:.58rem;font-weight:700;color:var(--hlabel-col);letter-spacing:.12em;text-transform:uppercase;transform:translateX(-50%);opacity:0;transition:opacity .2s;white-space:normal;text-align:center;max-width:58px;line-height:1.35;z-index:10;}
 /* Nav stars */
 .nav-star{position:fixed;z-index:15;cursor:none;display:flex;flex-direction:column;align-items:center;gap:4px;}
@@ -53,13 +53,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 #reset-btn{top:auto;bottom:16px;left:auto;right:16px;}
 #mute-btn{position:fixed;top:44px;right:16px;background:transparent;border:1px solid rgba(255,255,255,0.6);box-shadow:0 0 12px rgba(255,255,255,0.25);border-radius:8px;color:rgba(240,240,255,0.9);font-family:'Baloo 2',cursive;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;cursor:none;padding:6px 12px;backdrop-filter:blur(12px);transition:color 0.6s ease, border-color 0.6s ease;z-index:200;}
 #mute-btn:hover{background:rgba(255,255,255,.08);color:var(--amber);}
-#mini-track-name,.mini-track-name{position:fixed;top:22px;left:16px;z-index:200;font-family:'Baloo 2',cursive;font-size:0.75rem;color:rgba(20,40,80,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;pointer-events:none;transition:color 0.6s ease;}
+#now-playing-wrap{position:fixed;top:88px;left:16px;z-index:200;display:flex;align-items:baseline;gap:8px;pointer-events:none;opacity:0;transition:opacity 0.5s ease;}
+#now-playing-wrap.visible{opacity:1;}
+.now-playing-label{font-family:'Baloo 2',cursive;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(220,230,255,0.85);animation:nowPlayingPulse 2s ease-in-out infinite;}
+#mini-track-name,.mini-track-name{font-family:'Baloo 2',cursive;font-size:0.75rem;color:rgba(220,230,255,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;transition:color 0.6s ease;}
+@keyframes nowPlayingPulse{0%,100%{opacity:0.6}50%{opacity:1}}
 
-/* ── PLAYER PANEL (top left, under track name) ── */
+/* ── PLAYER PANEL (top left) ── */
 #player-panel{position:fixed;top:44px;left:16px;z-index:101;display:flex;align-items:center;gap:8px;
   background:transparent;border:1px solid rgba(255,255,255,0.6);border-radius:8px;padding:6px 10px;backdrop-filter:blur(12px);
   box-shadow:0 0 12px rgba(255,255,255,0.25), inset 0 0 8px rgba(255,255,255,0.04);}
-#player-panel .mini-btn{background:none;border:none;color:rgba(20,40,80,0.85);font-family:'Baloo 2',cursive;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;cursor:none;padding:4px 8px;border-radius:4px;transition:color 0.6s ease;}
+#player-panel .mini-btn{background:none;border:none;color:rgba(220,230,255,0.9);font-family:'Baloo 2',cursive;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;cursor:none;padding:4px 8px;border-radius:4px;transition:color 0.6s ease;}
 #player-panel .mini-btn:hover{background:rgba(255,255,255,.08);color:var(--amber);}
 .time-label{color:rgba(20,40,80,0.55);transition:color 0.6s ease;}
 .meter-icon{display:flex;align-items:flex-end;gap:2px;height:12px;}
@@ -120,8 +124,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .track-row.active .track-name{color:var(--amber-soft);}
 .track-dur{font-size:.6rem;color:rgba(200,216,240,.4);flex-shrink:0;}
 .track-play{background:none;border:1px solid rgba(244,168,50,.25);border-radius:50%;width:20px;height:20px;color:var(--amber);font-size:.6rem;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .2s,border-color .2s;flex-shrink:0;}
-.track-progress{height:2px;background:rgba(20,40,80,0.2);border-radius:1px;overflow:hidden;margin-top:2px;cursor:pointer;}
-.track-progress-fill{height:100%;background:rgba(20,40,80,0.7);border-radius:1px;width:0%;transition:width .2s linear;}
+.track-progress{height:4px;background:rgba(255,255,255,0.12);border-radius:2px;overflow:hidden;margin-top:4px;cursor:pointer;}
+.track-progress-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber-soft));border-radius:2px;width:0%;transition:width .2s linear;box-shadow:0 0 6px rgba(244,168,50,0.4);}
 .track-play:hover{background:rgba(244,168,50,.15);border-color:var(--amber);}
 
 
@@ -172,17 +176,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
   <div id="floating-music-inner">
     <div class="music-header">The Songs</div>
     <div id="tracks-container"></div>
+    <div class="stream-row" style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+      <a href="https://open.spotify.com/artist/0LMjRAggIqThiu4STUgVzP" target="_blank" class="pill-link">Spotify</a>
+      <a href="#" target="_blank" class="pill-link">Apple Music</a>
+      <a href="#" target="_blank" class="pill-link">Bandcamp</a>
+    </div>
   </div>
 </div>
 
-<!-- ── HERO ROW (track name left, MUTE right - aligned to title) ── -->
-<div id="mini-track-name">Play</div>
-
-<!-- ── PLAYER PANEL (top left, under track name) ── -->
+<!-- ── PLAYER PANEL (top left) ── -->
 <div id="player-panel">
   <div class="meter-icon" id="meter-icon" style="display:none;"><span></span><span></span><span></span><span></span><span></span></div>
   <button class="mini-btn" id="btn-playpause">Play</button>
   <button class="mini-btn" id="btn-next">Next</button>
+</div>
+
+<!-- ── NOW PLAYING (below player) ── -->
+<div id="now-playing-wrap">
+  <span class="now-playing-label">Now playing</span>
+  <span id="mini-track-name">Play</span>
 </div>
 
 <!-- ── PERSISTENT UI ── -->
@@ -200,6 +212,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 <div class="menu-cloud" data-id="parents" style="left:8%;top:72%;width:88px;height:52px;"><span class="menu-cloud-label">Parents</span></div>
 <div class="menu-cloud" data-id="press" style="left:90%;top:75%;width:118px;height:68px;"><span class="menu-cloud-label">Press</span></div>
 <div class="menu-cloud" data-id="album" style="left:50%;top:88%;width:140px;height:78px;"><span class="menu-cloud-label">Album</span></div>
+
+<div id="signup-bar" style="position:fixed;top:0;left:0;right:0;z-index:500;
+  background:rgba(5,5,26,0.85);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:7px 40px 7px 20px;
+  font-family:'Nunito',sans-serif;font-size:0.72rem;
+  transition:opacity 0.5s ease;opacity:0;pointer-events:none;">
+  <span style="color:rgba(200,220,240,0.7);letter-spacing:0.04em;">
+    Enriching little imaginations — get Curious Dreamers news & Dilly Dally's next adventures
+  </span>
+  <form id="signup-form" onsubmit="return handleSignup(event)" style="display:flex;gap:6px;align-items:center;">
+    <input id="signup-email" type="email" placeholder="your@email.com"
+      style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);
+      border-radius:6px;padding:4px 10px;color:rgba(220,235,255,0.9);
+      font-family:'Nunito',sans-serif;font-size:0.7rem;outline:none;cursor:none;width:170px;">
+    <button type="submit"
+      style="background:none;border:1px solid rgba(244,168,50,0.35);border-radius:6px;
+      padding:4px 12px;color:rgba(244,168,50,0.8);font-family:'Baloo 2',cursive;
+      font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;cursor:none;">
+      Join</button>
+  </form>
+  <button id="signup-close"
+    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.85rem;
+    cursor:none;line-height:1;padding:2px 6px;">✕</button>
+</div>
 
 <script>
 let dayAmount = 0; // 0 = full night, 1 = full day
@@ -416,7 +455,7 @@ function drawFrame() {
   hitZones = [];
   const cr = mc.getBoundingClientRect();
   hd.forEach((d, i) => {
-    hitZones.push({x:d.objX, y:d.objY, r:50, trackIdx:d.trackIdx, depth:d.depth});
+    hitZones.push({x:d.objX, y:d.objY, r:60, trackIdx:d.trackIdx, depth:d.depth});
     const frontness = Math.max(0, (d.depth+1)/2);
     const lbl = labels[d.trackIdx];
     lbl.style.left = (cr.left + d.objX) + 'px';
@@ -498,22 +537,25 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   mctx.restore();
 }
 
-// Canvas click — open overlay (text or music)
-// Convert display coords to canvas coords (canvas may be scaled)
-mc.addEventListener('click', e => {
-  const r=mc.getBoundingClientRect();
-  const mx=(e.clientX-r.left)*(mc.width/r.width), my=(e.clientY-r.top)*(mc.height/r.height);
-  const hits = hitZones.filter(z => {
-    const dx=mx-z.x, dy=my-z.y;
-    return dx*dx+dy*dy < z.r*z.r;
-  });
-  if (hits.length) {
-    const frontmost = hits.sort((a,b) => (b.depth||0) - (a.depth||0))[0];
-    playTrack(frontmost.trackIdx);
-    return;
+// Canvas click — use capture phase so we handle before nav stars/menu clouds can intercept
+function handleCanvasAreaClick(e) {
+  if (e.target.closest('#floating-music-inner') || e.target.closest('.floating-text-inner')) return;
+  const r = mc.getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+  e.stopPropagation();
+  e.preventDefault();
+  const mx = (e.clientX - r.left) * (mc.width / r.width);
+  const my = (e.clientY - r.top) * (mc.height / r.height);
+  for (const z of hitZones) {
+    const dx = mx - z.x, dy = my - z.y;
+    if (dx*dx + dy*dy < z.r*z.r) {
+      playTrack(z.trackIdx);
+      return;
+    }
   }
   closeAll();
-});
+}
+document.addEventListener('click', handleCanvasAreaClick, { capture: true });
 function updateHoverFromMouse(e) {
   const r = mc.getBoundingClientRect();
   if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
@@ -650,9 +692,7 @@ function closeAll() {
 }
 
 function showMusicList() {
-  document.getElementById('mobile-stage').style.transition = 'opacity 0.6s ease';
-  document.getElementById('mobile-stage').style.opacity = '0';
-  document.getElementById('mobile-stage').style.pointerEvents = 'none';
+  currentPanel = 'music';
   const floatingMusic = document.getElementById('floating-music');
   floatingMusic.classList.add('visible');
   const existingBack = document.getElementById('album-back-btn');
@@ -691,7 +731,15 @@ const TRACK_FILES_FALLBACK = [
   '09 - Winter snow.mp3',
   '10 - Star Ballet Album.mp3'
 ];
-let TRACK_FILES = [];
+let TRACK_FILES = [...TRACK_FILES_FALLBACK];
+
+// Declared early so playTrack can reference it
+const bgTheme = new Audio('mp3/Hushabye Lullabye Theme (Extended).mp3');
+bgTheme.loop = true; bgTheme.volume = 0.15;
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#mobile-canvas')) return;
+  if (bgTheme.paused && !isPlaying) bgTheme.play().catch(()=>{});
+}, {once:true});
 
 async function loadTracks() {
   // Always use fallback filenames — these match the actual mp3/ folder contents
@@ -748,7 +796,7 @@ async function loadTracks() {
         currentAudio.pause();
         isPlaying = false;
         btn.textContent = '▶';
-        document.getElementById('btn-playpause').textContent = '▶';
+        document.getElementById('btn-playpause').textContent = 'Play';
       } else {
         playTrack(idx);
       }
@@ -772,11 +820,12 @@ let currentAudio = null, currentIdx = -1, isPlaying = false;
 
 function playTrack(idx) {
   if (idx < 0 || idx >= TRACK_FILES.length) return;
+  if (bgTheme && !bgTheme.paused) bgTheme.pause();
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
 
-  // Update UI
+  // Update UI — reset all play buttons and progress before switching
+  document.querySelectorAll('.track-play').forEach(b => { b.textContent = '▶'; });
   document.querySelectorAll('.track-row').forEach((r,i) => r.classList.toggle('active', i===idx));
-  document.querySelector('.track-play[data-idx="'+currentIdx+'"]')?.classList.remove('active');
   document.querySelectorAll('.track-progress-fill').forEach(el => el.style.width = '0%');
 
   currentIdx = idx;
@@ -804,6 +853,7 @@ function playTrack(idx) {
     currentAudio.play();
     isPlaying = true;
     document.getElementById('mini-track-name').textContent = name;
+    document.getElementById('now-playing-wrap').classList.add('visible');
     document.getElementById('btn-playpause').textContent = 'Pause';
     document.getElementById('meter-icon').style.display = 'flex';
     document.getElementById('porthole').classList.add('playing');
@@ -826,6 +876,7 @@ function stopPlayer() {
   document.getElementById('meter-icon').style.display = 'none';
   document.getElementById('porthole').classList.remove('playing');
   document.getElementById('mini-track-name').textContent = 'Play';
+  document.getElementById('now-playing-wrap').classList.remove('visible');
   document.querySelectorAll('.track-progress-fill').forEach(el => el.style.width = '0%');
   currentIdx = -1;
 }
@@ -901,9 +952,22 @@ document.getElementById('daynight-slider').addEventListener('input', e => {
   document.querySelectorAll('.mini-btn').forEach(b => b.style.color = nightCol);
   const miniTrackEl = document.getElementById('mini-track-name');
   if (miniTrackEl) miniTrackEl.style.color = nightCol;
+  document.querySelectorAll('.now-playing-label').forEach(l => l.style.color = nightCol);
   document.querySelectorAll('.time-label').forEach(l => l.style.color = nightCol);
   const muteBtn = document.getElementById('mute-btn');
   if (muteBtn) muteBtn.style.color = nightCol;
+  const bar = document.getElementById('signup-bar');
+  const barText = document.querySelector('#signup-bar span');
+  const barInput = document.getElementById('signup-email');
+  if (dayAmount > 0.5) {
+    if (bar) { bar.style.background = 'rgba(200,235,255,0.88)'; bar.style.borderBottom = '1px solid rgba(20,80,140,0.15)'; }
+    if (barText) barText.style.color = 'rgba(10,50,100,0.85)';
+    if (barInput) { barInput.style.color = 'rgba(10,50,100,0.9)'; barInput.style.borderColor = 'rgba(10,80,140,0.25)'; barInput.style.background = 'rgba(255,255,255,0.35)'; }
+  } else {
+    if (bar) { bar.style.background = 'rgba(5,5,26,0.85)'; bar.style.borderBottom = '1px solid rgba(255,255,255,0.08)'; }
+    if (barText) barText.style.color = 'rgba(200,220,240,0.7)';
+    if (barInput) { barInput.style.color = 'rgba(220,235,255,0.9)'; barInput.style.borderColor = 'rgba(255,255,255,0.15)'; barInput.style.background = 'rgba(255,255,255,0.06)'; }
+  }
 });
 
 // Porthole playing pulse
@@ -911,9 +975,7 @@ document.getElementById('daynight-slider').addEventListener('input', e => {
 
 loadTracks();
 
-const bgTheme = new Audio('mp3/Hushabye Lullabye Theme (Extended).mp3');
-bgTheme.loop = true; bgTheme.volume = 0.15;
-document.addEventListener('click', () => { if(bgTheme.paused && !isPlaying) bgTheme.play().catch(()=>{}); }, {once:true});
+// (bgTheme declared above near TRACK_FILES)
 
 // ═══════════════════════════════════════════════
 // RESET BUTTON
@@ -925,6 +987,29 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   const nearest = current > Math.PI ? Math.PI * 2 : 0;
   ringAngleTarget = ringAngle - current + nearest;
 });
+
+setTimeout(() => {
+  const b = document.getElementById('signup-bar');
+  b.style.opacity = '1'; b.style.pointerEvents = 'auto';
+}, 3000);
+document.getElementById('signup-close').addEventListener('click', () => {
+  const b = document.getElementById('signup-bar');
+  b.style.opacity = '0'; b.style.pointerEvents = 'none';
+  document.getElementById('site-title').style.marginTop = '0';
+});
+function handleSignup(e) {
+  e.preventDefault();
+  const email = document.getElementById('signup-email').value;
+  if (email) {
+    document.getElementById('signup-form').innerHTML =
+      '<span style="font-family:\'Baloo 2\',cursive;font-size:0.72rem;color:rgba(244,168,50,0.9);">✓ Sweet dreams ahead ✦</span>';
+    setTimeout(() => {
+      const b = document.getElementById('signup-bar');
+      b.style.opacity = '0'; b.style.pointerEvents = 'none';
+    }, 2500);
+  }
+  return false;
+}
 
 </script>
 </body>
