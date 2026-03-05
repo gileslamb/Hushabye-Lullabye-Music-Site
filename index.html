@@ -79,12 +79,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .drifter{position:fixed;border-radius:50%;pointer-events:none;z-index:1;opacity:0;animation:drift linear infinite;}
 
 /* ── FLOATING TEXT OVERLAY ── */
-.floating-text{position:fixed;inset:0;z-index:100;pointer-events:none;display:flex;align-items:center;justify-content:center;}
+.floating-text{position:fixed;inset:0;z-index:100;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3vh;}
+.floating-text:not(.visible){pointer-events:none!important;}
+.floating-text.visible{pointer-events:auto;}
 .floating-text.visible{pointer-events:auto;}
 .floating-text-inner{pointer-events:auto;width:min(560px, 88vw);max-height:80vh;overflow-y:auto;text-align:left;padding:28px 32px 32px;background:rgba(5,5,26,0.75);backdrop-filter:blur(20px);border:1px solid rgba(244,168,50,0.12);border-radius:20px;transform:translateY(30px);opacity:0;transition:transform 0.5s ease-out, opacity 0.5s ease-out;position:relative;}
 .floating-text.visible .floating-text-inner{transform:translateY(0);opacity:1;}
 /* ── FLOATING MUSIC (Album overlay) ── */
-#floating-music{position:fixed;inset:0;z-index:100;pointer-events:none;display:flex;align-items:center;justify-content:center;}
+#floating-music{position:fixed;inset:0;z-index:100;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3vh;}
+#floating-music:not(.visible){pointer-events:none!important;}
+#floating-music.visible{pointer-events:auto;}
 #floating-music.visible{pointer-events:auto;}
 #floating-music-inner{pointer-events:auto;width:min(560px, 88vw);max-height:80vh;overflow-y:auto;text-align:left;padding:28px 32px 32px;background:rgba(5,5,26,0.75);backdrop-filter:blur(20px);border:1px solid rgba(244,168,50,0.12);border-radius:20px;transform:translateY(30px);opacity:0;transition:transform 0.5s ease-out, opacity 0.5s ease-out;position:relative;}
 #floating-music.visible #floating-music-inner{transform:translateY(0);opacity:1;}
@@ -177,9 +181,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
     <div class="music-header">The Songs</div>
     <div id="tracks-container"></div>
     <div class="stream-row" style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-      <a href="https://open.spotify.com/artist/0LMjRAggIqThiu4STUgVzP" target="_blank" class="pill-link">Spotify</a>
-      <a href="#" target="_blank" class="pill-link">Apple Music</a>
-      <a href="#" target="_blank" class="pill-link">Bandcamp</a>
+      <a href="https://open.spotify.com/artist/0LMjRAggIqThiu4STUgVzP" target="_blank" rel="noopener" class="pill-link">Spotify</a>
+      <span class="pill-link" style="cursor:none;opacity:0.7">Apple Music</span>
+      <span class="pill-link" style="cursor:none;opacity:0.7">Bandcamp</span>
     </div>
   </div>
 </div>
@@ -455,7 +459,7 @@ function drawFrame() {
   hitZones = [];
   const cr = mc.getBoundingClientRect();
   hd.forEach((d, i) => {
-    hitZones.push({x:d.objX, y:d.objY, r:60, trackIdx:d.trackIdx, depth:d.depth});
+    hitZones.push({x:d.objX, y:d.objY, r:80, trackIdx:d.trackIdx, depth:d.depth});
     const frontness = Math.max(0, (d.depth+1)/2);
     const lbl = labels[d.trackIdx];
     lbl.style.left = (cr.left + d.objX) + 'px';
@@ -537,15 +541,12 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   mctx.restore();
 }
 
-// Canvas click — use capture phase so we handle before nav stars/menu clouds can intercept
-function handleCanvasAreaClick(e) {
-  if (e.target.closest('#floating-music-inner') || e.target.closest('.floating-text-inner')) return;
-  const r = mc.getBoundingClientRect();
-  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+// Canvas click — direct handler; use offsetX/Y; fallback to closest emoji if near miss
+mc.addEventListener('click', e => {
   e.stopPropagation();
-  e.preventDefault();
-  const mx = (e.clientX - r.left) * (mc.width / r.width);
-  const my = (e.clientY - r.top) * (mc.height / r.height);
+  const cw = mc.clientWidth || mc.width, ch = mc.clientHeight || mc.height;
+  const mx = (e.offsetX / cw) * mc.width;
+  const my = (e.offsetY / ch) * mc.height;
   for (const z of hitZones) {
     const dx = mx - z.x, dy = my - z.y;
     if (dx*dx + dy*dy < z.r*z.r) {
@@ -553,9 +554,10 @@ function handleCanvasAreaClick(e) {
       return;
     }
   }
-  closeAll();
-}
-document.addEventListener('click', handleCanvasAreaClick, { capture: true });
+  const closest = hitZones.map(z => ({...z, d2: (mx-z.x)**2 + (my-z.y)**2})).sort((a,b) => a.d2 - b.d2)[0];
+  if (closest && closest.d2 < 120*120) playTrack(closest.trackIdx);
+  else closeAll();
+});
 function updateHoverFromMouse(e) {
   const r = mc.getBoundingClientRect();
   if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
@@ -821,7 +823,7 @@ let currentAudio = null, currentIdx = -1, isPlaying = false;
 function playTrack(idx) {
   if (idx < 0 || idx >= TRACK_FILES.length) return;
   if (bgTheme && !bgTheme.paused) bgTheme.pause();
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentAudio) { currentAudio.pause(); currentAudio.remove(); currentAudio = null; }
 
   // Update UI — reset all play buttons and progress before switching
   document.querySelectorAll('.track-play').forEach(b => { b.textContent = '▶'; });
@@ -845,12 +847,15 @@ function playTrack(idx) {
   if (playBtn) playBtn.textContent = '…';
 
   currentAudio = new Audio('mp3/' + TRACK_FILES[idx]);
+  currentAudio.preload = 'auto';
   currentAudio.volume = 0.8;
+  currentAudio.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none';
+  document.body.appendChild(currentAudio);
 
+  currentAudio.play().catch(() => {});
   currentAudio.addEventListener('canplay', () => {
     if (bgTheme && !bgTheme.paused) bgTheme.pause();
     if (playBtn) playBtn.textContent = '⏸';
-    currentAudio.play();
     isPlaying = true;
     document.getElementById('mini-track-name').textContent = name;
     document.getElementById('now-playing-wrap').classList.add('visible');
@@ -867,7 +872,7 @@ function playTrack(idx) {
 }
 
 function stopPlayer() {
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentAudio) { currentAudio.pause(); currentAudio.remove(); currentAudio = null; }
   if (bgTheme) bgTheme.play().catch(()=>{});
   isPlaying = false;
   document.querySelectorAll('.track-row').forEach(r => r.classList.remove('active'));
