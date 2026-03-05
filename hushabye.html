@@ -26,8 +26,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 #site-title p{font-size:clamp(.65rem,1.1vw,.85rem);font-weight:300;color:var(--cloud);letter-spacing:.25em;text-transform:uppercase;margin-top:4px;opacity:.6;}
 
 /* ── MOBILE STAGE ── */
-#mobile-stage{position:fixed;top:50%;left:50%;transform:translate(-50%,-72%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp 2.5s ease 1s forwards;z-index:2;}
-#rocket-wrap{animation:rocketBob 4s ease-in-out infinite;position:relative;z-index:2;width:180px;height:230px;flex-shrink:0;}
+#mobile-stage{position:fixed;top:50%;left:50%;transform:translate(-50%,-55%);display:flex;flex-direction:column;align-items:center;opacity:0;animation:fadeUp 2.5s ease 1s forwards;z-index:2;}
+#rocket-wrap{animation:rocketBob 4s ease-in-out infinite;position:relative;z-index:2;width:180px;height:230px;flex-shrink:0;transform:translateX(-12px);}
 .rp-body{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:90px;height:160px;background:linear-gradient(160deg,#5bcfcf,#3a9fa0 60%,#2a7a7b);clip-path:polygon(50% 0%,85% 30%,100% 100%,0% 100%,15% 30%);box-shadow:inset -8px 0 20px rgba(0,0,0,.3),0 0 30px rgba(78,205,196,.2);}
 .rp-fin-l,.rp-fin-r{position:absolute;bottom:8px;width:28px;height:50px;background:#2e8b3a;clip-path:polygon(100% 0%,100% 100%,0% 100%);}
 .rp-fin-l{left:calc(50% - 74px);transform:scaleX(-1);}
@@ -126,14 +126,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 
 /* ── KEYFRAMES ── */
 @keyframes fadeDown{from{opacity:0;transform:translateX(-50%) translateY(-14px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes fadeUp{from{opacity:0;transform:translate(-50%,-72%) translateY(18px)}to{opacity:1;transform:translate(-50%,-72%) translateY(0)}}
-@keyframes rocketBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes fadeUp{from{opacity:0;transform:translate(-50%,-55%) translateY(18px)}to{opacity:1;transform:translate(-50%,-55%) translateY(0)}}
+@keyframes rocketBob{0%,100%{transform:translateX(-12px) translateY(0)}50%{transform:translateX(-12px) translateY(8px)}}
 @keyframes drift{0%{opacity:0;transform:translateY(110vh) scale(.8)}5%{opacity:var(--op)}95%{opacity:var(--op)}100%{opacity:0;transform:translateY(-15vh) translateX(var(--dx)) scale(1.1)}}
 @keyframes portalPulse{0%,100%{box-shadow:0 0 12px rgba(244,168,50,.8)}50%{box-shadow:0 0 28px rgba(244,168,50,1),0 0 56px rgba(244,168,50,.5)}}
 
 /* ── RESPONSIVE ── */
 @media(max-width:700px){
-  #mobile-stage{transform:translate(-50%,-72%) scale(.72);transform-origin:top center;}
+  #mobile-stage{transform:translate(-50%,-55%) scale(.72);transform-origin:top center;}
   #track-list{padding:18px 20px 12px;}
   .testimonials{grid-template-columns:1fr;}
 }
@@ -152,15 +152,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 
 <!-- ── ROCKET MOBILE ── -->
 <!-- SWAP POINT A: replace CSS rocket with PNG
-     <img id="rocket-img" src="rocket.png" style="width:160px;height:auto;">
+     <img id="rocket-img" src="rocket crop master.png" style="width:160px;height:auto;">
      then remove the .rp-body .rp-fin .rp-window .rp-door divs -->
 <div id="mobile-stage">
   <div id="rocket-wrap">
-    <div class="rp-fin-l"></div>
-    <div class="rp-fin-r"></div>
-    <div class="rp-body"></div>
-    <div class="rp-window" id="porthole" title="The Songs"></div>
-    <div class="rp-door"></div>
+    <img id="porthole" src="rocket crop master.png" style="width:220px;height:auto;display:block;margin:0 auto;" title="The Songs">
   </div>
   <canvas id="mobile-canvas" width="500" height="300"></canvas>
 </div>
@@ -530,7 +526,6 @@ let TRACK_FILES = [];
 async function loadTracks() {
   // Always use fallback filenames — these match the actual mp3/ folder contents
   TRACK_FILES = [...TRACK_FILES_FALLBACK];
-  {
 
   const container = document.getElementById('tracks-container');
 
