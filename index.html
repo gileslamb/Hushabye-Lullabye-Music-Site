@@ -48,8 +48,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .menu-cloud-label{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);z-index:10;font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;pointer-events:none;}
 @keyframes navPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
 @keyframes hintBob{0%,100%{opacity:0.5;transform:translateX(-50%) translateY(0)}50%{opacity:1;transform:translateX(-50%) translateY(-4px)}}
+@keyframes hintBobCenter{0%,100%{opacity:0.5;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
 
 /* ── UI CONTROLS ── */
+.elegant-slider{-webkit-appearance:none;appearance:none;height:2px;background:rgba(255,255,255,0.2);border-radius:2px;outline:none;cursor:none;}
 .ui-btn{position:fixed;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--amber);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .3s,transform .3s;backdrop-filter:blur(8px);z-index:200;}
 .ui-btn:hover{background:rgba(255,255,255,.13);transform:scale(1.1);}
 #reset-btn{top:auto;bottom:16px;left:auto;right:16px;}
@@ -205,18 +207,32 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 <!-- ── PERSISTENT UI ── -->
 <button class="ui-btn" id="reset-btn" title="Reset">↺</button>
 <button id="mute-btn">MUTE</button>
-<div id="daynight-slider-wrap" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:12px;pointer-events:auto;background:rgba(5,5,26,0.45);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);border-radius:40px;padding:8px 18px;">
-  <img src="characters/moon.png" style="width:36px;height:36px;object-fit:contain;">
-  <input type="range" id="daynight-slider" min="0" max="1" step="0.01" value="0"
-    style="width:160px;height:2px;accent-color:#f4a832;cursor:none;">
-  <img src="characters/sun.png" style="width:36px;height:36px;object-fit:contain;">
-  <div style="width:1px;height:28px;background:rgba(255,255,255,0.15);margin:0 4px;"></div>
-  <span style="font-size:0.55rem;letter-spacing:0.08em;text-transform:uppercase;font-family:'Baloo 2',cursive;color:rgba(244,168,50,0.6);">Speed</span>
-  <input type="range" id="speed-slider" min="0.001" max="0.016" step="0.001" value="0.004"
-    style="width:70px;height:2px;accent-color:#f4a832;cursor:none;">
-  <div id="slider-hint" style="position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Baloo 2',cursive;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,168,50,0.7);pointer-events:none;animation:hintBob 2.5s ease-in-out infinite;">
-    ✦ slide for daytime ✦
+<div id="daynight-slider-wrap" style="position:fixed;bottom:12px;left:0;right:0;z-index:200;pointer-events:auto;background:transparent;border:none;padding:10px 0;min-height:90px;">
+  
+  <!-- Day/Night side — center of left half -->
+  <div style="position:absolute;left:25%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;">
+    <div style="width:256px;text-align:center;padding-left:22px;">
+      <span id="slider-hint" style="font-family:'Baloo 2',cursive;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,168,50,0.7);white-space:nowrap;animation:hintBobCenter 2.5s ease-in-out infinite;">✦ slide for daytime ✦</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="characters/moon.png" style="width:64px;height:64px;object-fit:contain;display:inline-block;flex-shrink:0;">
+      <input type="range" id="daynight-slider" min="0" max="1" step="0.01" value="0" class="elegant-slider" style="width:140px;">
+      <img src="characters/sun.png" style="width:32px;height:32px;object-fit:contain;display:inline-block;flex-shrink:0;">
+    </div>
   </div>
+  
+  <!-- Speed side — center of right half -->
+  <div style="position:absolute;left:75%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;">
+    <div style="width:288px;text-align:center;">
+      <span id="speed-hint" style="font-family:'Baloo 2',cursive;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,168,50,0.7);white-space:nowrap;animation:hintBobCenter 2.5s ease-in-out infinite 0.4s;">✦ rotation speed ✦</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="characters/seahorse.png" style="width:64px;height:64px;object-fit:contain;display:inline-block;flex-shrink:0;">
+      <input type="range" id="speed-slider" min="0.001" max="0.016" step="0.001" value="0.004" class="elegant-slider" style="width:140px;">
+      <img src="characters/bee.png" style="width:64px;height:64px;object-fit:contain;display:inline-block;flex-shrink:0;">
+    </div>
+  </div>
+  
 </div>
 
 <div class="menu-cloud" data-id="watch" style="left:12%;top:22%;width:130px;height:76px;"><span class="menu-cloud-label">Watch</span></div>
@@ -418,7 +434,7 @@ const HANGER_IMAGES = [
   'characters/sunshine.png',
   'characters/butterfly.png',
   'characters/autumn.png',
-  'characters/boats.png',
+  'characters/boats.png?v=3',
   'characters/winter.png',
   'characters/starballet.png'
 ];
@@ -543,7 +559,7 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   mctx.lineWidth = 1; mctx.stroke();
   const fs = Math.round(24 * dscale);
   mctx.font = `${fs}px serif`; mctx.textAlign = 'center'; mctx.textBaseline = 'middle';
-  if (!isFar) { mctx.shadowColor = d.col; mctx.shadowBlur = 14; }
+  if (!isFar) { mctx.shadowColor = d.col; mctx.shadowBlur = 1; }
   // Scale around center when hovered; draw image or emoji fallback
   if (hoverScale > 1.001) {
     mctx.save();
@@ -552,7 +568,8 @@ function drawHanger(d, isFar, hoverAmt = 0) {
     mctx.translate(-d.objX, -d.objY);
     if (hangerImgs[d.trackIdx] && hangerImgs[d.trackIdx].complete && hangerImgs[d.trackIdx].naturalWidth > 0) {
       const img = hangerImgs[d.trackIdx];
-      const iw = fs * 2.2;
+      const mult = [5,7,8].includes(d.trackIdx) ? 4.4 : 2.2;
+      const iw = fs * mult;
       const ih = iw * (img.naturalHeight / img.naturalWidth);
       mctx.drawImage(img, d.objX - iw/2, d.objY - ih/2, iw, ih);
     } else {
@@ -562,7 +579,8 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   } else {
     if (hangerImgs[d.trackIdx] && hangerImgs[d.trackIdx].complete && hangerImgs[d.trackIdx].naturalWidth > 0) {
       const img = hangerImgs[d.trackIdx];
-      const iw = fs * 2.2;
+      const mult = [5,7,8].includes(d.trackIdx) ? 4.4 : 2.2;
+      const iw = fs * mult;
       const ih = iw * (img.naturalHeight / img.naturalWidth);
       mctx.drawImage(img, d.objX - iw/2, d.objY - ih/2, iw, ih);
     } else {
@@ -982,10 +1000,6 @@ document.getElementById('mute-btn').addEventListener('click', () => {
   document.getElementById('mute-btn').textContent = globalMuted ? 'UNMUTE' : 'MUTE';
 });
 
-document.getElementById('daynight-slider').addEventListener('input', () => {
-  const hint = document.getElementById('slider-hint');
-  if (hint) hint.style.display = 'none';
-}, {once:true});
 document.getElementById('daynight-slider').addEventListener('input', e => {
   dayAmount = parseFloat(e.target.value);
   document.documentElement.style.setProperty('--hlabel-col',
@@ -1011,6 +1025,11 @@ document.getElementById('daynight-slider').addEventListener('input', e => {
   document.querySelectorAll('.time-label').forEach(l => l.style.color = nightCol);
   const muteBtn = document.getElementById('mute-btn');
   if (muteBtn) muteBtn.style.color = nightCol;
+  const sliderHint = document.getElementById('slider-hint');
+  const speedHint = document.getElementById('speed-hint');
+  const sliderLabelCol = dayAmount > 0.5 ? 'rgba(20,50,90,0.9)' : 'rgba(244,168,50,0.7)';
+  if (sliderHint) sliderHint.style.color = sliderLabelCol;
+  if (speedHint) speedHint.style.color = sliderLabelCol;
   const bar = document.getElementById('signup-bar');
   const barText = document.querySelector('#signup-bar span');
   const barInput = document.getElementById('signup-email');
