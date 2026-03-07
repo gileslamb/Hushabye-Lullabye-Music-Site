@@ -210,6 +210,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
   <input type="range" id="daynight-slider" min="0" max="1" step="0.01" value="0"
     style="width:160px;height:2px;accent-color:#f4a832;cursor:none;">
   <img src="characters/sun.png" style="width:36px;height:36px;object-fit:contain;">
+  <div style="width:1px;height:28px;background:rgba(255,255,255,0.15);margin:0 4px;"></div>
+  <span style="font-size:0.55rem;letter-spacing:0.08em;text-transform:uppercase;font-family:'Baloo 2',cursive;color:rgba(244,168,50,0.6);">Speed</span>
+  <input type="range" id="speed-slider" min="0.001" max="0.016" step="0.001" value="0.004"
+    style="width:70px;height:2px;accent-color:#f4a832;cursor:none;">
   <div id="slider-hint" style="position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Baloo 2',cursive;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,168,50,0.7);pointer-events:none;animation:hintBob 2.5s ease-in-out infinite;">
     ✦ slide for daytime ✦
   </div>
@@ -439,6 +443,7 @@ const labels = HANGERS.map(h => {
 });
 
 let ringAngle = 0, ringAngleTarget = null, hitZones = [];
+let ringSpeed = 0.004;
 let hoveredTrackIdx = -1;
 const hoverScales = new Array(10).fill(0);
 
@@ -454,7 +459,7 @@ function drawFrame() {
     ringAngle += (ringAngleTarget - ringAngle) * 0.04;
     if (Math.abs(ringAngle - ringAngleTarget) < 0.001) ringAngleTarget = null;
   } else {
-    ringAngle += SPEED;
+    ringAngle += ringSpeed;
   }
 
   const hd = HANGERS.map((h, i) => {
@@ -563,13 +568,6 @@ function drawHanger(d, isFar, hoverAmt = 0) {
     } else {
       mctx.fillText(HANGER_EMOJIS[d.trackIdx], d.objX, d.objY + fs * 0.38);
     }
-  }
-  if (isHovered) {
-    mctx.beginPath();
-    mctx.arc(d.objX, d.objY, fs * 0.9, 0, Math.PI * 2);
-    mctx.strokeStyle = 'rgba(244,168,50,0.55)';
-    mctx.lineWidth = 2;
-    mctx.stroke();
   }
   mctx.restore();
 }
@@ -1025,6 +1023,10 @@ document.getElementById('daynight-slider').addEventListener('input', e => {
     if (barText) barText.style.color = 'rgba(200,220,240,0.7)';
     if (barInput) { barInput.style.color = 'rgba(220,235,255,0.9)'; barInput.style.borderColor = 'rgba(255,255,255,0.15)'; barInput.style.background = 'rgba(255,255,255,0.06)'; }
   }
+});
+
+document.getElementById('speed-slider').addEventListener('input', e => {
+  ringSpeed = parseFloat(e.target.value);
 });
 
 // Porthole playing pulse
