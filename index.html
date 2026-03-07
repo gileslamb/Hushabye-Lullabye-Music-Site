@@ -38,15 +38,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 #mobile-canvas{display:block;flex-shrink:0;margin-top:-42px;position:relative;z-index:3;pointer-events:auto;}
 .hlabel{position:fixed;pointer-events:none;font-family:'Baloo 2',cursive;font-size:.58rem;font-weight:700;color:var(--hlabel-col);letter-spacing:.12em;text-transform:uppercase;transform:translateX(-50%);opacity:0;transition:opacity .2s;white-space:normal;text-align:center;max-width:58px;line-height:1.35;z-index:10;}
 /* Nav stars */
-.nav-star{position:fixed;z-index:15;cursor:none;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.nav-star{position:fixed;z-index:15;cursor:none;display:flex;flex-direction:column;align-items:center;gap:8px;}
 .nav-star-dot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 8px 3px rgba(255,255,255,0.6);animation:navPulse 2.5s ease-in-out infinite;transition:box-shadow .3s;}
 .nav-star:hover .nav-star-dot{box-shadow:0 0 16px 6px rgba(244,168,50,0.9);}
-.nav-star-label{font-family:'Baloo 2',cursive;font-size:.82rem;font-weight:800;color:rgba(244,168,50,0.85);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 10px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,0.9);order:-1;}
+.nav-star-label{font-family:'Baloo 2',cursive;font-size:1.1rem;font-weight:800;color:rgba(244,168,50,0.85);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 10px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,0.9);order:-1;}
 .nav-star:hover .nav-star-label{color:rgba(244,168,50,1);}
 .menu-cloud{position:fixed;display:flex;align-items:center;justify-content:center;z-index:16;cursor:none;opacity:0;pointer-events:none;transform:translateX(-50%);}
 .menu-cloud[data-id="album"],.nav-star[data-id="album"]{z-index:25;pointer-events:auto !important;}
-.menu-cloud-label{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);z-index:10;font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;pointer-events:none;}
+.menu-cloud-label{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);z-index:10;font-family:'Baloo 2',cursive;font-weight:800;font-size:1.1rem;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;pointer-events:none;}
 @keyframes navPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+@keyframes hintBob{0%,100%{opacity:0.5;transform:translateX(-50%) translateY(0)}50%{opacity:1;transform:translateX(-50%) translateY(-4px)}}
 
 /* ── UI CONTROLS ── */
 .ui-btn{position:fixed;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--amber);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .3s,transform .3s;backdrop-filter:blur(8px);z-index:200;}
@@ -209,6 +210,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
   <input type="range" id="daynight-slider" min="0" max="1" step="0.01" value="0"
     style="width:100px;height:4px;accent-color:#f4a832;cursor:none;">
   <span style="font-size:1.1rem;line-height:1;">☀️</span>
+  <div id="slider-hint" style="position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Baloo 2',cursive;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,168,50,0.7);pointer-events:none;animation:hintBob 2.5s ease-in-out infinite;">
+    ✦ slide for daytime ✦
+  </div>
 </div>
 
 <div class="menu-cloud" data-id="watch" style="left:12%;top:22%;width:130px;height:76px;"><span class="menu-cloud-label">Watch</span></div>
@@ -523,7 +527,7 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   const dscale = 0.55 + 0.45 * ((d.depth+1)/2);
   const isHovered = !isFar && d.trackIdx === hoveredTrackIdx;
   const amt = (typeof hoverAmt === 'number' && !isNaN(hoverAmt)) ? hoverAmt : 0;
-  const hoverScale = 1.0 + amt * 1.0;
+  const hoverScale = 1.0 + amt * 1.1;
   mctx.save(); mctx.globalAlpha = alpha;
   mctx.beginPath(); mctx.moveTo(d.sx, d.sy); mctx.lineTo(d.objX, d.objY);
   const ta = Math.max(0, (d.depth+1)/2);
@@ -543,9 +547,15 @@ function drawHanger(d, isFar, hoverAmt = 0) {
     mctx.translate(-d.objX, -d.objY);
     if (hangerImgs[d.trackIdx] && hangerImgs[d.trackIdx].complete && hangerImgs[d.trackIdx].naturalWidth > 0) {
       const img = hangerImgs[d.trackIdx];
-      const iw = fs * 2.2;
+      const iw = fs * 3.2;
       const ih = iw * (img.naturalHeight / img.naturalWidth);
       mctx.drawImage(img, d.objX - iw/2, d.objY - ih/2, iw, ih);
+      mctx.save();
+      mctx.globalCompositeOperation = 'screen';
+      mctx.globalAlpha = 0.18;
+      mctx.fillStyle = 'white';
+      mctx.fillRect(d.objX - iw/2, d.objY - ih/2, iw, ih);
+      mctx.restore();
     } else {
       mctx.fillText(HANGER_EMOJIS[d.trackIdx], d.objX, d.objY + fs * 0.38);
     }
@@ -553,19 +563,18 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   } else {
     if (hangerImgs[d.trackIdx] && hangerImgs[d.trackIdx].complete && hangerImgs[d.trackIdx].naturalWidth > 0) {
       const img = hangerImgs[d.trackIdx];
-      const iw = fs * 2.2;
+      const iw = fs * 3.2;
       const ih = iw * (img.naturalHeight / img.naturalWidth);
       mctx.drawImage(img, d.objX - iw/2, d.objY - ih/2, iw, ih);
+      mctx.save();
+      mctx.globalCompositeOperation = 'screen';
+      mctx.globalAlpha = 0.18;
+      mctx.fillStyle = 'white';
+      mctx.fillRect(d.objX - iw/2, d.objY - ih/2, iw, ih);
+      mctx.restore();
     } else {
       mctx.fillText(HANGER_EMOJIS[d.trackIdx], d.objX, d.objY + fs * 0.38);
     }
-  }
-  if (isHovered) {
-    mctx.beginPath();
-    mctx.arc(d.objX, d.objY, fs * 0.9, 0, Math.PI * 2);
-    mctx.strokeStyle = 'rgba(244,168,50,0.55)';
-    mctx.lineWidth = 2;
-    mctx.stroke();
   }
   mctx.restore();
 }
@@ -980,6 +989,10 @@ document.getElementById('mute-btn').addEventListener('click', () => {
   document.getElementById('mute-btn').textContent = globalMuted ? 'UNMUTE' : 'MUTE';
 });
 
+document.getElementById('daynight-slider').addEventListener('input', () => {
+  const hint = document.getElementById('slider-hint');
+  if (hint) hint.style.display = 'none';
+}, {once:true});
 document.getElementById('daynight-slider').addEventListener('input', e => {
   dayAmount = parseFloat(e.target.value);
   document.documentElement.style.setProperty('--hlabel-col',
