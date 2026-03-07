@@ -41,11 +41,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .nav-star{position:fixed;z-index:15;cursor:none;display:flex;flex-direction:column;align-items:center;gap:4px;}
 .nav-star-dot{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 8px 3px rgba(255,255,255,0.6);animation:navPulse 2.5s ease-in-out infinite;transition:box-shadow .3s;}
 .nav-star:hover .nav-star-dot{box-shadow:0 0 16px 6px rgba(244,168,50,0.9);}
-.nav-star-label{font-family:'Baloo 2',cursive;font-size:.65rem;font-weight:700;color:rgba(244,168,50,0.85);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 10px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,0.9);order:-1;}
+.nav-star-label{font-family:'Baloo 2',cursive;font-size:.82rem;font-weight:800;color:rgba(244,168,50,0.85);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 10px rgba(0,0,0,1),0 1px 3px rgba(0,0,0,0.9);order:-1;}
 .nav-star:hover .nav-star-label{color:rgba(244,168,50,1);}
 .menu-cloud{position:fixed;display:flex;align-items:center;justify-content:center;z-index:16;cursor:none;opacity:0;pointer-events:none;transform:translateX(-50%);}
 .menu-cloud[data-id="album"],.nav-star[data-id="album"]{z-index:25;pointer-events:auto !important;}
-.menu-cloud-label{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);z-index:10;font-family:'Baloo 2',cursive;font-weight:800;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;pointer-events:none;}
+.menu-cloud-label{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);z-index:10;font-family:'Baloo 2',cursive;font-weight:800;font-size:0.82rem;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;pointer-events:none;}
 @keyframes navPulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
 
 /* ── UI CONTROLS ── */
@@ -204,11 +204,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 <!-- ── PERSISTENT UI ── -->
 <button class="ui-btn" id="reset-btn" title="Reset">↺</button>
 <button id="mute-btn">MUTE</button>
-<div id="daynight-slider-wrap" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;pointer-events:auto;">
-  <span style="font-size:1rem;">🌙</span>
+<div id="daynight-slider-wrap" style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;pointer-events:auto;background:rgba(5,5,26,0.45);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12);border-radius:40px;padding:7px 16px;">
+  <span style="font-size:1.1rem;line-height:1;">🌙</span>
   <input type="range" id="daynight-slider" min="0" max="1" step="0.01" value="0"
-    style="width:120px;height:3px;accent-color:var(--amber);cursor:none;">
-  <span style="font-size:1rem;">☀️</span>
+    style="width:100px;height:4px;accent-color:#f4a832;cursor:none;">
+  <span style="font-size:1.1rem;line-height:1;">☀️</span>
 </div>
 
 <div class="menu-cloud" data-id="watch" style="left:12%;top:22%;width:130px;height:76px;"><span class="menu-cloud-label">Watch</span></div>
@@ -402,6 +402,21 @@ const TRACK_NAMES = [
   'Star Ballet'
 ];
 const HANGER_EMOJIS = ['⭐','🌙','💛','🌸','☀️','🦋','🍂','🚢','❄️','💫'];
+const HANGER_IMAGES = [
+  'characters/hushabye.png',
+  'characters/chumble.png',
+  'characters/spring.png',
+  'characters/bathtime.png',
+  'characters/sunshine.png',
+  'characters/butterfly.png',
+  'characters/autumn.png',
+  'characters/boats.png',
+  'characters/winter.png',
+  'characters/starballet.png'
+];
+const hangerImgs = HANGER_IMAGES.map(src => {
+  const img = new Image(); img.src = src; return img;
+});
 const HANGER_COLS   = ['#f9d070','#a0c8ff','#ffe080','#ffb0d0','#ffd060','#c0d8ff','#f0b060','#80c8ff','#d0e8ff','#e0d0ff'];
 const HANGER_LENS   = [110,132,105,122,115,128,108,118,125,112];
 const HANGERS = TRACK_NAMES.map((name, i) => ({
@@ -520,16 +535,30 @@ function drawHanger(d, isFar, hoverAmt = 0) {
   const fs = Math.round(24 * dscale);
   mctx.font = `${fs}px serif`; mctx.textAlign = 'center'; mctx.textBaseline = 'middle';
   if (!isFar) { mctx.shadowColor = d.col; mctx.shadowBlur = 14; }
-  // Scale emoji around its center when hovered
+  // Scale around center when hovered; draw image or emoji fallback
   if (hoverScale > 1.001) {
     mctx.save();
     mctx.translate(d.objX, d.objY);
     mctx.scale(hoverScale, hoverScale);
     mctx.translate(-d.objX, -d.objY);
-    mctx.fillText(d.emoji, d.objX, d.objY);
+    if (hangerImgs[d.trackIdx] && hangerImgs[d.trackIdx].complete && hangerImgs[d.trackIdx].naturalWidth > 0) {
+      const img = hangerImgs[d.trackIdx];
+      const iw = fs * 2.2;
+      const ih = iw * (img.naturalHeight / img.naturalWidth);
+      mctx.drawImage(img, d.objX - iw/2, d.objY - ih/2, iw, ih);
+    } else {
+      mctx.fillText(HANGER_EMOJIS[d.trackIdx], d.objX, d.objY + fs * 0.38);
+    }
     mctx.restore();
   } else {
-    mctx.fillText(d.emoji, d.objX, d.objY);
+    if (hangerImgs[d.trackIdx] && hangerImgs[d.trackIdx].complete && hangerImgs[d.trackIdx].naturalWidth > 0) {
+      const img = hangerImgs[d.trackIdx];
+      const iw = fs * 2.2;
+      const ih = iw * (img.naturalHeight / img.naturalWidth);
+      mctx.drawImage(img, d.objX - iw/2, d.objY - ih/2, iw, ih);
+    } else {
+      mctx.fillText(HANGER_EMOJIS[d.trackIdx], d.objX, d.objY + fs * 0.38);
+    }
   }
   if (isHovered) {
     mctx.beginPath();
