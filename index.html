@@ -55,20 +55,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 .ui-btn{position:fixed;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:var(--amber);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:none;transition:background .3s,transform .3s;backdrop-filter:blur(8px);z-index:200;}
 .ui-btn:hover{background:rgba(255,255,255,.13);transform:scale(1.1);}
 #reset-btn{top:auto;bottom:16px;left:auto;right:16px;}
-#mute-btn{position:fixed;top:44px;right:16px;background:transparent;border:1px solid rgba(255,255,255,0.6);box-shadow:0 0 12px rgba(255,255,255,0.25);border-radius:8px;color:rgba(240,240,255,0.9);font-family:'Baloo 2',cursive;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;cursor:none;padding:6px 12px;backdrop-filter:blur(12px);transition:color 0.6s ease, border-color 0.6s ease;z-index:200;}
-#mute-btn:hover{background:rgba(255,255,255,.08);color:var(--amber);}
-#now-playing-wrap{position:fixed;top:88px;left:16px;z-index:200;display:flex;align-items:baseline;gap:8px;pointer-events:none;opacity:0;transition:opacity 0.5s ease;}
+#mute-btn{position:fixed;top:16px;right:16px;width:34px;height:34px;background:none;border:none;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:none;z-index:200;opacity:0.5;transition:opacity 0.3s ease;padding:0;}
+#mute-btn:hover{opacity:1;}
+#now-playing-wrap{position:fixed;top:20px;left:16px;z-index:200;display:flex;align-items:baseline;gap:8px;pointer-events:none;opacity:0;transition:opacity 0.5s ease;}
 #now-playing-wrap.visible{opacity:1;}
 .now-playing-label{font-family:'Baloo 2',cursive;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(220,230,255,0.85);animation:nowPlayingPulse 2s ease-in-out infinite;}
 #mini-track-name,.mini-track-name{font-family:'Baloo 2',cursive;font-size:0.75rem;color:rgba(220,230,255,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;transition:color 0.6s ease;}
 @keyframes nowPlayingPulse{0%,100%{opacity:0.6}50%{opacity:1}}
 
-/* ── PLAYER PANEL (top left) ── */
-#player-panel{position:fixed;top:44px;left:16px;z-index:101;display:flex;align-items:center;gap:8px;
-  background:transparent;border:1px solid rgba(255,255,255,0.6);border-radius:8px;padding:6px 10px;backdrop-filter:blur(12px);
-  box-shadow:0 0 12px rgba(255,255,255,0.25), inset 0 0 8px rgba(255,255,255,0.04);}
-#player-panel .mini-btn{background:none;border:none;color:rgba(220,230,255,0.9);font-family:'Baloo 2',cursive;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;cursor:none;padding:4px 8px;border-radius:4px;transition:color 0.6s ease;}
-#player-panel .mini-btn:hover{background:rgba(255,255,255,.08);color:var(--amber);}
+/* ── PLAYER PANEL (hidden — controls live in track overlay) ── */
+#player-panel{display:none;}
 .time-label{color:rgba(20,40,80,0.55);transition:color 0.6s ease;}
 .meter-icon{display:flex;align-items:flex-end;gap:2px;height:12px;}
 .meter-icon span{width:3px;background:var(--amber);border-radius:1px;animation:meterBounce 0.5s ease-in-out infinite alternate;}
@@ -149,9 +145,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
   #tracks-container{padding:8px 10px;}
   .testimonials{grid-template-columns:1fr;}
   .nav-star-label{font-size:.62rem;letter-spacing:.04em;}
-  #player-panel{top:112px;}
-  #mute-btn{top:112px;}
-  #now-playing-wrap{top:138px;}
 }
 @media(max-width:500px){
   .nav-star-label{font-size:.55rem;letter-spacing:.02em;}
@@ -219,7 +212,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05051a;color:var(--
 
 <!-- ── PERSISTENT UI ── -->
 <button class="ui-btn" id="reset-btn" title="Reset">↺</button>
-<button id="mute-btn">MUTE</button>
+<button id="mute-btn" title="Mute / Unmute">🔊</button>
 <div id="daynight-slider-wrap" style="position:fixed;bottom:12px;left:0;right:0;z-index:200;pointer-events:auto;background:transparent;border:none;padding:10px 0;min-height:90px;">
   
   <!-- Day/Night side — center of left half -->
@@ -298,7 +291,7 @@ function addBigCursor(els) {
     el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
   });
 }
-addBigCursor(document.querySelectorAll('.ui-btn, .pill-link, .track-play, #player-panel .mini-btn, #porthole, #mute-btn'));
+addBigCursor(document.querySelectorAll('.ui-btn, .pill-link, .track-play, #porthole, #mute-btn'));
 
 // ═══════════════════════════════════════════════
 // STARFIELD  (original code preserved exactly)
@@ -1010,7 +1003,7 @@ document.getElementById('mute-btn').addEventListener('click', () => {
   globalMuted = !globalMuted;
   if (bgTheme) bgTheme.muted = globalMuted;
   if (currentAudio) currentAudio.muted = globalMuted;
-  document.getElementById('mute-btn').textContent = globalMuted ? 'UNMUTE' : 'MUTE';
+  document.getElementById('mute-btn').textContent = globalMuted ? '🔇' : '🔊';
 });
 
 document.getElementById('daynight-slider').addEventListener('input', e => {
